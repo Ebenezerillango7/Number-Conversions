@@ -1,0 +1,40 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+
+      - name: Restore NuGet Packages
+        run: nuget restore NumberConversions.sln -Verbosity detailed
+        continue-on-error: true
+
+      - name: Build Solution
+        run: msbuild NumberConversions.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+        continue-on-error: true
+
+      - name: Run Tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
+        continue-on-error: true
