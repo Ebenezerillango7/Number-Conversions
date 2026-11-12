@@ -121,5 +121,54 @@ namespace NumberConversions.Tests
             string acceptedResult = engine.ApplyProposals(text, proposals);
             Assert.Equal("மொத்தம் 5,673 போர்வீரர்கள்.", acceptedResult);
         }
+
+        [Fact]
+        public void OverlappingSeparators_NoSubTokensLeak()
+        {
+            var engine = new TamilNumberConversionEngine();
+
+            // Text with 5.050: inner '050' must NOT leak as 'ஐம்பது'
+            string textDot = "மொத்தம் 5.050 போர்வீரர்கள் கூடினார்கள்.";
+            var proposalsDot = engine.ScanText(textDot);
+
+            Assert.Single(proposalsDot);
+            Assert.Equal("5.050", proposalsDot[0].MatchedToken);
+            Assert.Equal("5,050", proposalsDot[0].Replacement);
+            Assert.True(proposalsDot[0].IsSuspicious);
+            Assert.False(proposalsDot[0].IsAccepted);
+
+            // Text with 5, 050: inner '050' must NOT leak as 'ஐம்பது'
+            string textSpace = "அங்கே 5, 050 நபர்கள் இருந்தனர்.";
+            var proposalsSpace = engine.ScanText(textSpace);
+
+            Assert.Single(proposalsSpace);
+            Assert.Equal("5, 050", proposalsSpace[0].MatchedToken);
+            Assert.Equal("5,050", proposalsSpace[0].Replacement);
+            Assert.True(proposalsSpace[0].IsSuspicious);
+            Assert.False(proposalsSpace[0].IsAccepted);
+        }
+
+        [Fact]
+        public void LeadingZeroNumbers_AreNotTreatedAsCardinals()
+        {
+            var engine = new TamilNumberConversionEngine();
+            string text = "குறியீடு 050 மற்றும் 05 ஆகும்.";
+            var proposals = engine.ScanText(text);
+
+            // Leading zero codes should not be converted to 'ஐம்பது' or 'ஐந்து'
+            Assert.Empty(proposals);
+        }
+
+        [Theory]
+        [InlineData("1 அரசர்கள் 2:10", true)]
+        [InlineData("2 அரசர்கள் 5:1", true)]
+        [InlineData("1 மக்கபேயர் 1:1", true)]
+        [InlineData("2 மக்கபேயர் 7:9", true)]
+        [InlineData("1 நாளேடு 3:4", true)]
+        public void ProtectedEntities_IncludesAlternateBookTitleVariants(string citation, bool expectedProtected)
+        {
+            bool isProtected = ScriptureProtectedEntities.IsProtectedTitlePrefix(citation, 0);
+            Assert.Equal(expectedProtected, isProtected);
+        }
     }
 }

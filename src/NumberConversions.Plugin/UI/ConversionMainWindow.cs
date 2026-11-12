@@ -311,6 +311,8 @@ namespace NumberConversions.Plugin.UI
 
         private void SyncGridSelections()
         {
+            _grid.EndEdit();
+
             foreach (DataGridViewRow row in _grid.Rows)
             {
                 if (row.Tag is ConversionProposal p)

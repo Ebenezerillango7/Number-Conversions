@@ -153,7 +153,7 @@ namespace NumberConversions.Plugin
                             // Only match proposals that belong strictly to this token position (TokenIndex)
                             // OR matching the exact original verse text snapshot and verse number!
                             var tokenProposals = chapterGroup
-                                .Where(p => (p.TokenIndex == i || p.VerseNum == tokenVerseNum) && 
+                                .Where(p => (p.TokenIndex == i || (tokenVerseNum > 0 && p.VerseNum == tokenVerseNum)) && 
                                             p.TokenOriginalText == original)
                                 .ToList();
 
@@ -163,7 +163,8 @@ namespace NumberConversions.Plugin
                                 if (updated != original)
                                 {
                                     // Paratext uses ConvertToUSFMTokens to generate replacement tokens
-                                    var newTokens = project.ConvertToUSFMTokens(updated, bookNum, chapterNum, 1).ToList();
+                                    int targetVerse = tokenVerseNum > 0 ? tokenVerseNum : 1;
+                                    var newTokens = project.ConvertToUSFMTokens(updated, bookNum, chapterNum, targetVerse).ToList();
                                     tokens.RemoveAt(i);
                                     tokens.InsertRange(i, newTokens);
                                     i += newTokens.Count - 1;

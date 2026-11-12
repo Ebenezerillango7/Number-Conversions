@@ -59,6 +59,10 @@ namespace NumberConversions.Core
                     continue;
 
                 string rawNumberStr = match.Groups[1].Value.Replace(",", "");
+                // Numbers with leading zeros (e.g. 05, 050) are codes or identifiers, not natural numbers
+                if (rawNumberStr.Length > 1 && rawNumberStr.StartsWith("0"))
+                    continue;
+
                 if (!long.TryParse(rawNumberStr, out long numVal))
                     continue;
 
@@ -274,12 +278,8 @@ namespace NumberConversions.Core
                 }
             }
 
-            // Remove any overlapping proposals by keeping the most specific match
-            proposals = proposals
-                .GroupBy(p => p.StartIndex)
-                .Select(g => g.OrderByDescending(p => p.Length).First())
-                .OrderBy(p => p.StartIndex)
-                .ToList();
+            // Resolve all overlapping proposal intervals (longer and flagged proposals take precedence over sub-spans)
+            proposals = ResolveOverlappingProposals(proposals);
 
             // Populate ProposedText preview for each proposal
             string fullProposed = ApplyProposals(text, proposals.Where(p => p.IsAccepted && !p.IsSuspicious));
@@ -323,6 +323,54 @@ namespace NumberConversions.Core
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Resolves arbitrary interval overlaps between proposals.
+        /// When two proposals overlap in text character spans:
+        /// 1. Longer matches take precedence over shorter inner slices.
+        /// 2. Suspicious/malformed flags take precedence over normal matches in the same span.
+        /// 3. Overlapping sub-tokens (e.g. inner '050' inside '5, 050') are eliminated.
+        /// </summary>
+        public static List<ConversionProposal> ResolveOverlappingProposals(List<ConversionProposal> proposals)
+        {
+            if (proposals == null || proposals.Count <= 1)
+                return proposals ?? new List<ConversionProposal>();
+
+            var sorted = proposals
+                .OrderByDescending(p => p.Length)
+                .ThenByDescending(p => p.IsSuspicious)
+                .ThenBy(p => p.StartIndex)
+                .ToList();
+
+            var selected = new List<ConversionProposal>();
+
+            foreach (var candidate in sorted)
+            {
+                int candStart = candidate.StartIndex;
+                int candEnd = candidate.StartIndex + candidate.Length;
+
+                bool overlaps = false;
+                foreach (var existing in selected)
+                {
+                    int exStart = existing.StartIndex;
+                    int exEnd = existing.StartIndex + existing.Length;
+
+                    // Standard interval overlap: [candStart, candEnd) overlaps [exStart, exEnd)
+                    if (candStart < exEnd && exStart < candEnd)
+                    {
+                        overlaps = true;
+                        break;
+                    }
+                }
+
+                if (!overlaps)
+                {
+                    selected.Add(candidate);
+                }
+            }
+
+            return selected.OrderBy(p => p.StartIndex).ToList();
         }
     }
 }

@@ -30,7 +30,8 @@ namespace NumberConversions.Core
             "toc3",   // Book abbreviation
             "mt1",    // Major title 1
             "mt2",    // Major title 2
-            "mt3"     // Major title 3
+            "mt3",    // Major title 3
+            "rem"     // Remarks / Translator Comments
         };
 
         public static bool ShouldExcludeMarker(string marker)
