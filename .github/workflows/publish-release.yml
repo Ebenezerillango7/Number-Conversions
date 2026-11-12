@@ -21,11 +21,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v2
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
 
       - name: Determine Version
         id: get_version
@@ -38,31 +39,34 @@ jobs:
           }
           Write-Output "VERSION=$tag" >> $env:GITHUB_ENV
 
-      - name: Restore NuGet Packages
-        run: nuget restore NumberConversions.sln -Verbosity detailed
-        continue-on-error: true
+      - name: Restore Dependencies
+        run: dotnet restore NumberConversions.sln
 
       - name: Build Release
-        run: msbuild NumberConversions.sln /p:Configuration=Release /p:Platform="Any CPU" /p:Version=${{ env.VERSION }}
+        run: dotnet build NumberConversions.sln --configuration Release --no-restore -p:Version=${{ env.VERSION }}
+
+      - name: Run Tests
+        run: dotnet test tests/NumberConversions.Tests/NumberConversions.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Package Plugin Distribution
         shell: pwsh
         run: |
-          $distDir = "dist/NumberConversions"
-          New-Item -ItemType Directory -Force -Path $distDir
+          $packageDir = "dist/package/NumberConversions"
+          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           
-          # Copy compiled output as .ptxplg
-          Copy-Item -Path "src/NumberConversions/bin/Release/NumberConversions.dll" -Destination "$distDir/NumberConversions.ptxplg" -Force
-          if (Test-Path "src/NumberConversions/bin/Release/NumberConversions.pdb") {
-            Copy-Item -Path "src/NumberConversions/bin/Release/NumberConversions.pdb" -Destination "$distDir/" -Force
-          }
+          # Copy plugin binaries
+          Copy-Item -Path "src/NumberConversions.Plugin/bin/Release/net48/NumberConversions.ptxplg" -Destination $packageDir -Force
+          Copy-Item -Path "src/NumberConversions.Core/bin/Release/net48/NumberConversions.Core.dll" -Destination $packageDir -Force
           
-          # Copy documentation & license
-          Copy-Item -Path "README.md" -Destination "$distDir/" -Force
-          Copy-Item -Path "LICENSE" -Destination "$distDir/" -Force
+          # Copy installation script and docs
+          Copy-Item -Path "scripts/install-plugin.ps1" -Destination $packageDir -Force
+          Copy-Item -Path "README.md" -Destination $packageDir -Force
+          Copy-Item -Path "LICENSE" -Destination $packageDir -Force
           
           # Create zip archive
-          Compress-Archive -Path "$distDir/*" -DestinationPath "dist/NumberConversions-Paratext9-Plugin-v${{ env.VERSION }}.zip" -Force
+          $zipPath = "dist/NumberConversions-Paratext9-Plugin-v${{ env.VERSION }}.zip"
+          Compress-Archive -Path "$packageDir/*" -DestinationPath $zipPath -Force
+          Write-Host "Created release archive at $zipPath"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -74,4 +78,5 @@ jobs:
           generate_release_notes: true
           files: |
             dist/NumberConversions-Paratext9-Plugin-v${{ env.VERSION }}.zip
-            dist/NumberConversions/NumberConversions.ptxplg
+            src/NumberConversions.Plugin/bin/Release/net48/NumberConversions.ptxplg
+            src/NumberConversions.Core/bin/Release/net48/NumberConversions.Core.dll

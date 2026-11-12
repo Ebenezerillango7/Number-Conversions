@@ -21,11 +21,13 @@
 
   <ItemGroup>
     <Reference Include="PluginInterfaces">
-      <HintPath>$(ParatextInstallDir)\PluginInterfaces.dll</HintPath>
+      <HintPath Condition="Exists('$(ParatextInstallDir)\PluginInterfaces.dll')">$(ParatextInstallDir)\PluginInterfaces.dll</HintPath>
+      <HintPath Condition="!Exists('$(ParatextInstallDir)\PluginInterfaces.dll')">$(MSBuildThisFileDirectory)..\..\lib\Paratext\PluginInterfaces.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="CorePluginInterfaces">
-      <HintPath>$(ParatextInstallDir)\CorePluginInterfaces.dll</HintPath>
+      <HintPath Condition="Exists('$(ParatextInstallDir)\CorePluginInterfaces.dll')">$(ParatextInstallDir)\CorePluginInterfaces.dll</HintPath>
+      <HintPath Condition="!Exists('$(ParatextInstallDir)\CorePluginInterfaces.dll')">$(MSBuildThisFileDirectory)..\..\lib\Paratext\CorePluginInterfaces.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

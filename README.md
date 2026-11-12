@@ -1,6 +1,7 @@
 # Number Conversions - Paratext 9.5 Plugin
 
-[![Build & Test](https://github.com/ebenezerillango/Number-Conversions/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ebenezerillango/Number-Conversions/actions/workflows/build-and-test.yml)
+[![Build & Test](https://github.com/Ebenezerillango7/Number-Conversions/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Ebenezerillango7/Number-Conversions/actions/workflows/build-and-test.yml)
+[![Publish Release](https://github.com/Ebenezerillango7/Number-Conversions/actions/workflows/publish-release.yml/badge.svg)](https://github.com/Ebenezerillango7/Number-Conversions/actions/workflows/publish-release.yml)
 [![Paratext Version](https://img.shields.io/badge/Paratext-9.5.110.11-blue.svg)](https://paratext.org)
 [![Target Script](https://img.shields.io/badge/Language-Tamil%20%28%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D%29-green.svg)](#tamil-orthography-rules)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -21,7 +22,23 @@ An intelligent scripture editing plugin for **Paratext 9.5** designed to standar
      - *Example*: `ஒரு லட்சத்து நாற்பத்து நான்காயிரம்` $\rightarrow$ `1,44,000`
 2. **Indian Numbering System Formatting**:
    - Formats large numbers using standard Indian grouping (`1,23,456,789` / $3, 2, 2\dots$ grouping).
-3. **Strict Structural Immunity (USFM Protection)**:
+3. **Typo & Spelling Mistake Detection**:
+   - Automatically detects common spelling errors and missing pulli/sandhi (e.g. `அறுபதைந்து` instead of `அறுபத்தைந்து`).
+   - Flagged with bug context and **never** auto-inserted (`IsAccepted = false` by default).
+4. **Alternate Spellings Support**:
+   - Seamlessly handles regional and dialectal variations:
+     - `ஐயாயிரம்` and `ஐந்தாயிரம்` ($5,000$)
+     - `நാലாயிரம்` and `நான்காயிரம்` ($4,000$)
+     - `முந்நூறு` and `முன்னூறு` ($300$)
+     - `ஐந்நூறு` and `ஐநூறு` ($500$)
+     - `லட்சம்` and `இலட்சம்` ($1,00,000$)
+5. **Malformed Separator Typo Detection**:
+   - Identifies malformed separators (e.g. `5.673` period instead of comma, or `5, 673` spaced commas).
+   - Resolves all interval overlaps and suppresses false sub-token matches.
+6. **"Flag as Paratext Notes" for Manual Review**:
+   - One-click action to create native **Paratext Project Notes** anchored to verses for flagged or suspicious items.
+   - Translators can review notes directly in Paratext's standard Notes panel with full verse context.
+7. **Strict Structural Immunity (USFM Protection)**:
    - **Ignores and preserves**:
      - Parallel references (`\r ...`)
      - Footnotes (`\f ... \f*`, `\fe ... \fe*`)
@@ -29,11 +46,13 @@ An intelligent scripture editing plugin for **Paratext 9.5** designed to standar
      - Figures and illustrations (`\fig ... \fig*`)
      - Verse numbers and markers (`\v 1`)
      - Chapter numbers and markers (`\c 1`)
-     - Book headers and names (`\id`, `\h`, `\toc1-3`, `\mt1-3`, leading book digits like `1 சாமுவேல்`, `2 கொரிந்தியர்`)
+     - Translator remarks (`\rem ...`)
+     - Book headers and names (`\id`, `\h`, `\toc1-3`, `\mt1-3`, leading book digits like `1 சாமுவேல்`, `2 அரசர்கள்`, `1 பேதுரு`)
    - Operates **exclusively** on narrative and poetic body text (`\p`, `\m`, `\q`, `\s`).
-4. **Translator Agency & Safety**:
-   - Interactive review window showing side-by-side diffs (Book, Chapter, Verse, Original, Proposed, Rule matched).
-   - Translator can accept, reject, or edit individual changes before committing.
+8. **Translator Agency & Safety**:
+   - Interactive review window showing side-by-side diffs (Book, Chapter, Verse, Original, Proposed, Warning/Bug Context).
+   - Amber row highlights for flagged/suspicious items.
+   - Translator can accept, reject, or filter changes before committing.
    - Creates Paratext **History Points** prior to applying changes for 1-click rollback.
    - Uses Paratext `IWriteLock` to guarantee transactional integrity.
 
@@ -84,15 +103,19 @@ For detailed specifications on sandhi rules (புணர்ச்சி), compo
 
 ## 🚀 Installation & Deployment
 
-1. Download the latest `NumberConversions-Paratext9-Plugin-vX.Y.Z.zip` from [Releases](https://github.com/ebenezerillango/Number-Conversions/releases).
-2. Extract the archive into your Paratext plugins directory:
+### Quick Install (Automatic)
+1. Download the latest `NumberConversions-Paratext9-Plugin-v1.0.0.zip` from [Releases](https://github.com/Ebenezerillango7/Number-Conversions/releases).
+2. Extract the zip file.
+3. Right-click `install-plugin.ps1` and select **Run with PowerShell** (or run `powershell -ExecutionPolicy Bypass -File install-plugin.ps1`). The script automatically locates Paratext 9, deploys the plugin, and refreshes the cache.
+4. Launch Paratext 9, open your project, and access **Tools $\rightarrow$ Tamil Number Conversions...**.
+
+### Manual Install
+1. Extract `NumberConversions.ptxplg` and `NumberConversions.Core.dll` into:
    ```
    D:\Transdata\Paratext 9\plugins\NumberConversions\
    ```
    *(or `C:\Program Files\Paratext 9\plugins\NumberConversions\` depending on your installation path).*
-3. Verify that `NumberConversions.ptxplg` is present in that folder.
-4. Restart Paratext (or run `UpdateParatextPluginCache.exe`).
-5. Open Paratext, navigate to any Tamil project, and click **Tools $\rightarrow$ Tamil Number Conversions...**.
+2. Restart Paratext 9.
 
 ---
 
