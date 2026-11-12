@@ -13,8 +13,10 @@ namespace NumberConversions.Core
     /// </summary>
     public class TamilNumberConversionEngine
     {
-        private static readonly Regex DigitPattern = new Regex(
-            @"(?<!\d)(\d{1,3})(st|nd|rd|th|-?ஆம்|-?வது|ம்)?(?!\d)",
+        // Matches the entire whole digit number (including Indian/international comma groupings)
+        // Never matches partial slices like '1' and '000' from '1,000'
+        private static readonly Regex WholeDigitNumberPattern = new Regex(
+            @"(?<!\d|\d,)(\d{1,3}(?:,\d{2,3})*|\d+)(st|nd|rd|th|-?ஆம்|-?வது|ம்)?(?!\d|,\d)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Regex to identify starting candidate tokens for Tamil numbers
@@ -34,8 +36,8 @@ namespace NumberConversions.Core
             if (string.IsNullOrWhiteSpace(text))
                 return proposals;
 
-            // 1. Scan for digits (0 - 199) -> Text
-            var digitMatches = DigitPattern.Matches(text);
+            // 1. Scan for whole digit numbers
+            var digitMatches = WholeDigitNumberPattern.Matches(text);
             foreach (Match match in digitMatches)
             {
                 int index = match.Index;
@@ -44,44 +46,74 @@ namespace NumberConversions.Core
                 if (ScriptureProtectedEntities.IsProtectedTitlePrefix(text, index))
                     continue;
 
-                string rawNumberStr = match.Groups[1].Value;
-                if (!int.TryParse(rawNumberStr, out int numVal))
+                string rawNumberStr = match.Groups[1].Value.Replace(",", "");
+                if (!long.TryParse(rawNumberStr, out long numVal))
                     continue;
 
-                // Rule 5: 0 - 199 digit to text
-                if (numVal < 0 || numVal > 199)
-                    continue;
-
-                string replacement;
                 string suffix = match.Groups[2].Success ? match.Groups[2].Value : string.Empty;
 
-                if (!string.IsNullOrEmpty(suffix))
+                // Rule 5: 0 - 199 digit to text
+                if (numVal >= 0 && numVal <= 199)
                 {
-                    // Ordinal conversion
-                    replacement = TamilOrdinalToTextConverter.Convert(numVal);
-                }
-                else
-                {
-                    // Cardinal conversion
-                    replacement = TamilCardinalToTextConverter.Convert(numVal);
-                }
+                    string replacement;
+                    if (!string.IsNullOrEmpty(suffix))
+                    {
+                        // Ordinal conversion
+                        replacement = TamilOrdinalToTextConverter.Convert((int)numVal);
+                    }
+                    else
+                    {
+                        // Cardinal conversion
+                        replacement = TamilCardinalToTextConverter.Convert((int)numVal);
+                    }
 
-                proposals.Add(new ConversionProposal
+                    proposals.Add(new ConversionProposal
+                    {
+                        Reference = verseRef,
+                        BookNum = bookNum,
+                        ChapterNum = chapterNum,
+                        VerseNum = verseNum,
+                        TokenIndex = tokenIndex,
+                        TokenOriginalText = text,
+                        MatchedToken = match.Value,
+                        Replacement = replacement,
+                        StartIndex = match.Index,
+                        Length = match.Length,
+                        OriginalText = text,
+                        RuleType = ConversionRuleType.DigitToText,
+                        IsAccepted = true
+                    });
+                }
+                else if (numVal >= 1000)
                 {
-                    Reference = verseRef,
-                    BookNum = bookNum,
-                    ChapterNum = chapterNum,
-                    VerseNum = verseNum,
-                    TokenIndex = tokenIndex,
-                    TokenOriginalText = text,
-                    MatchedToken = match.Value,
-                    Replacement = replacement,
-                    StartIndex = match.Index,
-                    Length = match.Length,
-                    OriginalText = text,
-                    RuleType = ConversionRuleType.DigitToText,
-                    IsAccepted = true
-                });
+                    // Rule 6: Thousand separator formatting for unformatted numbers >= 1000
+                    string expectedFormatted = IndianNumberFormatter.Format(numVal);
+                    if (!string.IsNullOrEmpty(suffix))
+                    {
+                        expectedFormatted += (suffix.StartsWith("-") ? suffix : "-" + suffix);
+                    }
+
+                    // Only propose if not already formatted with thousand separators
+                    if (match.Value != expectedFormatted)
+                    {
+                        proposals.Add(new ConversionProposal
+                        {
+                            Reference = verseRef,
+                            BookNum = bookNum,
+                            ChapterNum = chapterNum,
+                            VerseNum = verseNum,
+                            TokenIndex = tokenIndex,
+                            TokenOriginalText = text,
+                            MatchedToken = match.Value,
+                            Replacement = expectedFormatted,
+                            StartIndex = match.Index,
+                            Length = match.Length,
+                            OriginalText = text,
+                            RuleType = ConversionRuleType.TextToDigit,
+                            IsAccepted = true
+                        });
+                    }
+                }
             }
 
             // 2. Scan for Tamil number words (200+) -> Digits
