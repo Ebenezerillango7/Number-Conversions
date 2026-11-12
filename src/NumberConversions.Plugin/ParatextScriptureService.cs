@@ -29,21 +29,25 @@ namespace NumberConversions.Plugin
             {
                 progressCallback?.Invoke(chapter, lastChapter);
 
-                IEnumerable<IUSFMToken> tokens;
+                IEnumerable<IUSFMToken> tokenEnum;
                 try
                 {
-                    tokens = project.GetUSFMTokens(bookNum, chapter);
+                    tokenEnum = project.GetUSFMTokens(bookNum, chapter);
                 }
                 catch
                 {
                     continue;
                 }
 
-                if (tokens == null)
+                if (tokenEnum == null)
                     continue;
 
-                foreach (var token in tokens)
+                var tokens = tokenEnum.ToList();
+
+                for (int i = 0; i < tokens.Count; i++)
                 {
+                    var token = tokens[i];
+
                     // Strict structural filter: ignore non-scripture, footnotes, cross-references, figures, metadata
                     if (!token.IsScripture || token.IsFootnoteOrCrossReference || token.IsFigure || token.IsMetadata)
                         continue;
@@ -68,7 +72,8 @@ namespace NumberConversions.Plugin
 
                         int verseNum = token.VerseRef != null ? token.VerseRef.VerseNum : 0;
 
-                        var tokenProposals = _engine.ScanText(text, verseRefStr, bookNum, chapter, verseNum);
+                        // Bind proposal strictly to this specific tokenIndex (i) and verse
+                        var tokenProposals = _engine.ScanText(text, verseRefStr, bookNum, chapter, verseNum, i);
                         proposals.AddRange(tokenProposals);
                     }
                 }
@@ -142,13 +147,20 @@ namespace NumberConversions.Plugin
                         if (tokens[i] is IUSFMTextToken textToken)
                         {
                             string original = textToken.Text;
-                            var chapterProposals = chapterGroup
-                                .Where(p => original.Contains(p.MatchedToken))
+                            int tokenVerseNum = tokens[i].VerseRef != null ? tokens[i].VerseRef.VerseNum : 0;
+
+                            // STRICT MATCHING:
+                            // Only match proposals that belong strictly to this token position (TokenIndex)
+                            // OR matching the exact original verse text snapshot and verse number!
+                            // NEVER match by global substring search (Contains)!
+                            var tokenProposals = chapterGroup
+                                .Where(p => (p.TokenIndex == i || p.VerseNum == tokenVerseNum) && 
+                                            p.TokenOriginalText == original)
                                 .ToList();
 
-                            if (chapterProposals.Count > 0)
+                            if (tokenProposals.Count > 0)
                             {
-                                string updated = _engine.ApplyProposals(original, chapterProposals);
+                                string updated = _engine.ApplyProposals(original, tokenProposals);
                                 if (updated != original)
                                 {
                                     // Paratext uses ConvertToUSFMTokens to generate replacement tokens

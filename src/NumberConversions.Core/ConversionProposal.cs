@@ -17,6 +17,8 @@ namespace NumberConversions.Core
         public int BookNum { get; set; }
         public int ChapterNum { get; set; }
         public int VerseNum { get; set; }
+        public int TokenIndex { get; set; } // Exact token position in the chapter token stream
+        public string TokenOriginalText { get; set; } = string.Empty;
 
         public string MatchedToken { get; set; } = string.Empty;
         public string Replacement { get; set; } = string.Empty;
@@ -31,7 +33,7 @@ namespace NumberConversions.Core
 
         public override string ToString()
         {
-            return $"[{Reference}] '{MatchedToken}' -> '{Replacement}' ({RuleType})";
+            return $"[{Reference} Token#{TokenIndex}] '{MatchedToken}' -> '{Replacement}' ({RuleType})";
         }
     }
 }

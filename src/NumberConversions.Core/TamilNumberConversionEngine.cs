@@ -14,7 +14,7 @@ namespace NumberConversions.Core
     public class TamilNumberConversionEngine
     {
         private static readonly Regex DigitPattern = new Regex(
-            @"(?<!\w)(\d{1,3})(st|nd|rd|th|-?ஆம்|-?வது|ம்)?(?!\w)",
+            @"(?<!\d)(\d{1,3})(st|nd|rd|th|-?ஆம்|-?வது|ம்)?(?!\d)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Regex to identify starting candidate tokens for Tamil numbers
@@ -27,7 +27,8 @@ namespace NumberConversions.Core
             string verseRef = "",
             int bookNum = 0,
             int chapterNum = 0,
-            int verseNum = 0)
+            int verseNum = 0,
+            int tokenIndex = 0)
         {
             var proposals = new List<ConversionProposal>();
             if (string.IsNullOrWhiteSpace(text))
@@ -71,6 +72,8 @@ namespace NumberConversions.Core
                     BookNum = bookNum,
                     ChapterNum = chapterNum,
                     VerseNum = verseNum,
+                    TokenIndex = tokenIndex,
+                    TokenOriginalText = text,
                     MatchedToken = match.Value,
                     Replacement = replacement,
                     StartIndex = match.Index,
@@ -129,6 +132,8 @@ namespace NumberConversions.Core
                         BookNum = bookNum,
                         ChapterNum = chapterNum,
                         VerseNum = verseNum,
+                        TokenIndex = tokenIndex,
+                        TokenOriginalText = text,
                         MatchedToken = bestPhrase,
                         Replacement = bestDigits,
                         StartIndex = startPos,
@@ -173,12 +178,21 @@ namespace NumberConversions.Core
             string result = originalText;
             foreach (var proposal in ordered)
             {
-                if (proposal.StartIndex >= 0 && proposal.StartIndex + proposal.Length <= result.Length)
+                // Boundary check
+                if (proposal.StartIndex < 0 || proposal.StartIndex + proposal.Length > result.Length)
+                    continue;
+
+                // CRITICAL SAFETY INVARIANT: The characters at StartIndex MUST match MatchedToken exactly!
+                string actualTextAtIndex = result.Substring(proposal.StartIndex, proposal.Length);
+                if (actualTextAtIndex != proposal.MatchedToken)
                 {
-                    result = result.Substring(0, proposal.StartIndex) +
-                             proposal.Replacement +
-                             result.Substring(proposal.StartIndex + proposal.Length);
+                    // Never replace if target slice does not match MatchedToken
+                    continue;
                 }
+
+                result = result.Substring(0, proposal.StartIndex) +
+                         proposal.Replacement +
+                         result.Substring(proposal.StartIndex + proposal.Length);
             }
 
             return result;
