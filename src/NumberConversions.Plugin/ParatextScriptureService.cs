@@ -152,7 +152,6 @@ namespace NumberConversions.Plugin
                             // STRICT MATCHING:
                             // Only match proposals that belong strictly to this token position (TokenIndex)
                             // OR matching the exact original verse text snapshot and verse number!
-                            // NEVER match by global substring search (Contains)!
                             var tokenProposals = chapterGroup
                                 .Where(p => (p.TokenIndex == i || p.VerseNum == tokenVerseNum) && 
                                             p.TokenOriginalText == original)
@@ -190,6 +189,67 @@ namespace NumberConversions.Plugin
             }
 
             statusMessage = $"Successfully applied {approvedProposals.Count} approved number conversions.";
+            return true;
+        }
+
+        public bool FlagItemsAsParatextNotes(
+            IProject project,
+            IPluginObject pluginObj,
+            int bookNum,
+            List<ConversionProposal> flaggedProposals,
+            out string statusMessage)
+        {
+            statusMessage = string.Empty;
+
+            if (project == null || flaggedProposals == null || flaggedProposals.Count == 0)
+            {
+                statusMessage = "No flagged items selected.";
+                return false;
+            }
+
+            int notesAdded = 0;
+            var byChapter = flaggedProposals.GroupBy(p => p.ChapterNum);
+
+            foreach (var chapterGroup in byChapter)
+            {
+                int chapterNum = chapterGroup.Key;
+                IWriteLock? writeLock = null;
+
+                try
+                {
+                    writeLock = project.RequestWriteLock(pluginObj, onRelease => { }, bookNum, chapterNum);
+                    if (writeLock == null)
+                        continue;
+
+                    foreach (var proposal in chapterGroup)
+                    {
+                        try
+                        {
+                            string noteText = $"[Number Conversions Flag] {proposal.WarningReason}. Original text: '{proposal.MatchedToken}'. Suggested fix: '{proposal.Replacement}'.";
+                            var noteSpan = new FormattedString(noteText, null, Style.Plain);
+                            var paragraph = new CommentParagraph(new[] { noteSpan });
+
+                            // Anchor note to verse
+                            string verseUsfm = project.GetUSFM(bookNum, chapterNum, proposal.VerseNum);
+                            var verseRef = project.Versification.CreateReference(bookNum, chapterNum, proposal.VerseNum);
+                            var anchor = project.GetScriptureSelectionForVerse(verseRef, verseUsfm);
+
+                            project.AddNote(writeLock, anchor, new[] { paragraph }, null, _host.UserInfo);
+                            notesAdded++;
+                        }
+                        catch (Exception ex)
+                        {
+                            _host.Log(pluginObj, "Error adding note to verse {0}: {1}", new object[] { proposal.Reference, ex.Message });
+                        }
+                    }
+                }
+                finally
+                {
+                    writeLock?.Dispose();
+                }
+            }
+
+            statusMessage = $"Successfully created {notesAdded} Paratext Notes for manual translator review.";
             return true;
         }
     }

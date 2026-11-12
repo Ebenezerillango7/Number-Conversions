@@ -16,6 +16,7 @@ build/
 *.pdb
 *.ptxplg
 !dist/*.ptxplg
+!dist/**/*.ptxplg
 
 ## NuGet
 *.nupkg

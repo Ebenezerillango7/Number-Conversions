@@ -4,8 +4,11 @@ namespace NumberConversions.Core
 {
     public enum ConversionRuleType
     {
-        DigitToText, // 0 - 199 to Tamil Words
-        TextToDigit  // 200+ to Formatted Digits
+        DigitToText,          // 0 - 199 to Tamil Words
+        TextToDigit,          // 200+ to Formatted Digits
+        AlternateSpelling,    // Alternate / Dialectal spelling normalized (e.g. ஐந்தாயிரம் vs ஐயாயிரம்)
+        SuspiciousSpelling,   // Suspected typo / spelling mistake (e.g. அறுபதைந்து instead of அறுபத்தைந்து)
+        SuspiciousSeparator   // Suspected wrong separator (e.g. 5.673 or 5, 673 instead of 5,673)
     }
 
     /// <summary>
@@ -31,9 +34,14 @@ namespace NumberConversions.Core
         public ConversionRuleType RuleType { get; set; }
         public bool IsAccepted { get; set; } = true;
 
+        // Suspicious / Ambiguity Flags (Translators must review; NEVER auto-inserted)
+        public bool IsSuspicious { get; set; } = false;
+        public string WarningReason { get; set; } = string.Empty;
+
         public override string ToString()
         {
-            return $"[{Reference} Token#{TokenIndex}] '{MatchedToken}' -> '{Replacement}' ({RuleType})";
+            string flag = IsSuspicious ? $"[FLAGGED: {WarningReason}] " : "";
+            return $"{flag}[{Reference} Token#{TokenIndex}] '{MatchedToken}' -> '{Replacement}' ({RuleType})";
         }
     }
 }
