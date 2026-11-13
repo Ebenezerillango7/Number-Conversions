@@ -33,13 +33,6 @@ namespace NumberConversions.Plugin
                     PluginMenuLocation.ScrTextTools,
                     imagePath: null,
                     customLocation: null);
-
-                yield return new PluginMenuEntry(
-                    "Uninstall Tamil Number Conversions...",
-                    RunUninstaller,
-                    PluginMenuLocation.ScrTextTools,
-                    imagePath: null,
-                    customLocation: null);
             }
         }
 
@@ -47,11 +40,6 @@ namespace NumberConversions.Plugin
         {
             var window = new ConversionMainWindow(host, childState, this);
             window.Show();
-        }
-
-        private void RunUninstaller(IPluginHost host, IParatextChildState? childState)
-        {
-            PluginUninstaller.InitiateUninstall();
         }
     }
 }
