@@ -103,19 +103,23 @@ For detailed specifications on sandhi rules (புணர்ச்சி), compo
 
 ## 🚀 Installation & Deployment
 
-### Quick Install (Automatic)
-1. Download the latest `NumberConversions-Paratext9-Plugin-v1.0.0.zip` from [Releases](https://github.com/Ebenezerillango7/Number-Conversions/releases).
+### Quick 1-Click Install (Recommended)
+1. Download the latest `NumberConversions-Paratext9-Plugin-v1.0.5.zip` from [Releases](https://github.com/Ebenezerillango7/Number-Conversions/releases).
 2. Extract the zip file.
-3. Right-click `install-plugin.ps1` and select **Run with PowerShell** (or run `powershell -ExecutionPolicy Bypass -File install-plugin.ps1`). The script automatically locates Paratext 9, deploys the plugin, and refreshes the cache.
+3. Double-click **`install-plugin.bat`**.
+   - The installer automatically removes Windows Mark of the Web (`Zone.Identifier`) security blocks on downloaded files.
+   - If Paratext 9 is open, it prompts you to save and close Paratext, then automatically completes installation.
+   - Rebuilds Paratext's plugin cache and shows an installation confirmation message.
 4. Launch Paratext 9, open your project, and access **Tools $\rightarrow$ Tamil Number Conversions...**.
 
 ### Manual Install
-1. Extract `NumberConversions.ptxplg` and `NumberConversions.Core.dll` into:
+1. Before extracting, right-click the downloaded `.zip` file $\rightarrow$ **Properties** $\rightarrow$ check **Unblock** $\rightarrow$ click **Apply** / **OK** (removes Windows download block).
+2. Extract `NumberConversions.ptxplg`, `NumberConversions.Core.dll`, and `uninstall-plugin.ps1` into:
    ```
    D:\Transdata\Paratext 9\plugins\NumberConversions\
    ```
    *(or `C:\Program Files\Paratext 9\plugins\NumberConversions\` depending on your installation path).*
-2. Restart Paratext 9.
+3. Double-click `UpdateParatextPluginCache.exe` in the Paratext 9 folder (or restart Paratext 9).
 
 ---
 

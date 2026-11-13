@@ -100,6 +100,12 @@ if (Test-Path $cacheExe) {
     }
 }
 
+try {
+    [System.Reflection.Assembly]::LoadWithPartialName('System.AddIn') | Out-Null
+    [System.AddIn.Hosting.AddInStore]::RebuildAddIns((Join-Path $ParatextDir 'plugins')) | Out-Null
+}
+catch { }
+
 Write-Host "`nUninstallation Complete! Tamil Number Conversions plugin has been cleanly removed from Paratext 9." -ForegroundColor Green
 
 if ($NotifyWhenDone) {

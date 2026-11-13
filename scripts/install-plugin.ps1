@@ -30,11 +30,21 @@ if ([string]::IsNullOrWhiteSpace($ParatextDir)) {
 
 Write-Host "Found Paratext 9 at: $ParatextDir" -ForegroundColor Green
 
-# Verify Paratext is not running
+# Unblock files in source folder if downloaded from the web
+try {
+    Get-ChildItem -Path $PSScriptRoot -File | Unblock-File -ErrorAction SilentlyContinue
+}
+catch { }
+
+# Verify Paratext is not running; wait if open
 $running = Get-Process -Name "Paratext*" -ErrorAction SilentlyContinue
 if ($running) {
-    Write-Warning "Paratext is currently running. Please close Paratext before installing the plugin."
-    exit 1
+    Write-Host "`nNotice: Paratext 9 is currently running." -ForegroundColor Yellow
+    Write-Host "Please save your translation work and close Paratext 9..." -ForegroundColor Cyan
+    Write-Host "Waiting for Paratext 9 to close before continuing..." -ForegroundColor Gray
+    $running | Wait-Process -Timeout 300 -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+    Write-Host "Paratext 9 closed. Resuming installation..." -ForegroundColor Green
 }
 
 $targetPluginDir = Join-Path $ParatextDir "plugins\NumberConversions"
@@ -86,7 +96,7 @@ catch { }
 Write-Host "Copied plugin assemblies successfully:" -ForegroundColor Green
 Get-ChildItem $targetPluginDir | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
 
-# Run Paratext Plugin Cache updater if present
+# Refresh Paratext Plugin Cache
 $cacheExe = Join-Path $ParatextDir "UpdateParatextPluginCache.exe"
 if (Test-Path $cacheExe) {
     try {
@@ -99,4 +109,22 @@ if (Test-Path $cacheExe) {
     }
 }
 
-Write-Host "`nInstallation Complete! Launch Paratext 9 and open Tools -> Tamil Number Conversions..." -ForegroundColor Green
+try {
+    [System.Reflection.Assembly]::LoadWithPartialName('System.AddIn') | Out-Null
+    [System.AddIn.Hosting.AddInStore]::RebuildAddIns((Join-Path $ParatextDir 'plugins')) | Out-Null
+    Write-Host "Paratext AddIn cache rebuilt successfully." -ForegroundColor Green
+}
+catch { }
+
+Write-Host "`nInstallation Complete! Tamil Number Conversions plugin is ready in Paratext 9." -ForegroundColor Green
+
+try {
+    Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show(
+        "Tamil Number Conversions plugin has been successfully installed into Paratext 9!`n`nYou can now open Paratext and access Tools -> Tamil Number Conversions...",
+        "Installation Successful",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Information
+    ) | Out-Null
+}
+catch { }
