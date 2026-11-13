@@ -70,10 +70,7 @@ namespace NumberConversions.Plugin.UI
             _btnUninstall = new Button
             {
                 Text = "Uninstall Plugin...",
-                Location = new Point(930, 13),
-                Width = 140,
-                Height = 28,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Size = new Size(140, 28),
                 ForeColor = Color.FromArgb(160, 40, 40),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
@@ -81,7 +78,19 @@ namespace NumberConversions.Plugin.UI
             _btnUninstall.FlatAppearance.BorderColor = Color.FromArgb(220, 180, 180);
             _btnUninstall.Click += BtnUninstall_Click;
 
+            void PositionTopControls()
+            {
+                if (_btnUninstall != null && topPanel != null)
+                {
+                    int x = Math.Max(780, topPanel.ClientSize.Width - _btnUninstall.Width - 15);
+                    _btnUninstall.Location = new Point(x, 13);
+                }
+            }
+            topPanel.Resize += (s, e) => PositionTopControls();
+            topPanel.Layout += (s, e) => PositionTopControls();
+
             topPanel.Controls.AddRange(new Control[] { lblProj, _cboProjects, lblBook, _cboBooks, lblFilter, _cboFilter, _btnScan, _btnUninstall });
+            PositionTopControls();
 
             _grid = new DataGridView
             {
@@ -107,16 +116,15 @@ namespace NumberConversions.Plugin.UI
             _progressBar = new ProgressBar { Location = new Point(10, 10), Width = 300, Height = 20 };
             _lblStatus = new Label { Text = "Ready", Location = new Point(10, 38), AutoSize = true };
 
-            _btnSelectAll = new Button { Text = "Select Normal", Location = new Point(480, 20), Width = 110, Height = 32 };
+            _btnSelectAll = new Button { Text = "Select Normal", Width = 110, Height = 32 };
             _btnSelectAll.Click += (s, e) => SetSelection(true, onlyNormal: true);
 
-            _btnUnselectAll = new Button { Text = "Unselect All", Location = new Point(600, 20), Width = 100, Height = 32 };
+            _btnUnselectAll = new Button { Text = "Unselect All", Width = 100, Height = 32 };
             _btnUnselectAll.Click += (s, e) => SetSelection(false, onlyNormal: false);
 
             _btnFlagNotes = new Button
             {
                 Text = "Flag as Paratext Notes",
-                Location = new Point(710, 18),
                 Width = 180,
                 Height = 36,
                 BackColor = Color.FromArgb(230, 126, 34),
@@ -128,7 +136,6 @@ namespace NumberConversions.Plugin.UI
             _btnApply = new Button
             {
                 Text = "Apply Selected",
-                Location = new Point(900, 18),
                 Width = 160,
                 Height = 36,
                 BackColor = Color.FromArgb(0, 120, 215),
@@ -137,7 +144,33 @@ namespace NumberConversions.Plugin.UI
             };
             _btnApply.Click += BtnApply_Click;
 
+            void PositionBottomControls()
+            {
+                if (bottomPanel != null && _btnApply != null && _btnFlagNotes != null && _btnUnselectAll != null && _btnSelectAll != null)
+                {
+                    int right = Math.Max(700, bottomPanel.ClientSize.Width - 15);
+                    _btnApply.Location = new Point(right - _btnApply.Width, 18);
+                    _btnFlagNotes.Location = new Point(_btnApply.Left - _btnFlagNotes.Width - 10, 18);
+                    _btnUnselectAll.Location = new Point(_btnFlagNotes.Left - _btnUnselectAll.Width - 10, 20);
+                    _btnSelectAll.Location = new Point(_btnUnselectAll.Left - _btnSelectAll.Width - 10, 20);
+                }
+            }
+            bottomPanel.Resize += (s, e) => PositionBottomControls();
+            bottomPanel.Layout += (s, e) => PositionBottomControls();
+
             bottomPanel.Controls.AddRange(new Control[] { _progressBar, _lblStatus, _btnSelectAll, _btnUnselectAll, _btnFlagNotes, _btnApply });
+            PositionBottomControls();
+
+            Shown += (s, e) =>
+            {
+                PositionTopControls();
+                PositionBottomControls();
+            };
+            Resize += (s, e) =>
+            {
+                PositionTopControls();
+                PositionBottomControls();
+            };
 
             Controls.Add(_grid);
             Controls.Add(topPanel);
