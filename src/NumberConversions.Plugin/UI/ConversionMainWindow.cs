@@ -112,15 +112,16 @@ namespace NumberConversions.Plugin.UI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
 
-            var chkCol = new DataGridViewCheckBoxColumn { HeaderText = "Apply", Width = 50, Name = "Apply" };
-            var statusCol = new DataGridViewTextBoxColumn { HeaderText = "Status", Width = 90, ReadOnly = true, Name = "Status" };
-            var refCol = new DataGridViewTextBoxColumn { HeaderText = "Verse", Width = 85, ReadOnly = true, Name = "Ref" };
-            var ruleCol = new DataGridViewTextBoxColumn { HeaderText = "Type", Width = 130, ReadOnly = true, Name = "Rule" };
-            var origCol = new DataGridViewTextBoxColumn { HeaderText = "Original", Width = 130, ReadOnly = true, Name = "Orig" };
-            var repCol = new DataGridViewTextBoxColumn { HeaderText = "Proposed Replacement", Width = 150, ReadOnly = true, Name = "Rep" };
-            var warnCol = new DataGridViewTextBoxColumn { HeaderText = "Warning / Bug Context", Width = 200, ReadOnly = true, Name = "Warn" };
+            var chkCol = new DataGridViewCheckBoxColumn { HeaderText = "Apply (ஏற்க)", Width = 55, Name = "Apply" };
+            var statusCol = new DataGridViewTextBoxColumn { HeaderText = "Status", Width = 85, ReadOnly = true, Name = "Status" };
+            var refCol = new DataGridViewTextBoxColumn { HeaderText = "Verse (வசனம்)", Width = 95, ReadOnly = true, Name = "Ref" };
+            var ruleCol = new DataGridViewTextBoxColumn { HeaderText = "Type (வகை)", Width = 145, ReadOnly = true, Name = "Rule" };
+            var origCol = new DataGridViewTextBoxColumn { HeaderText = "Original (மூலம்)", Width = 130, ReadOnly = true, Name = "Orig" };
+            var repCol = new DataGridViewTextBoxColumn { HeaderText = "Proposed (மாற்றம்)", Width = 140, ReadOnly = true, Name = "Rep" };
+            var previewCol = new DataGridViewTextBoxColumn { HeaderText = "Context Preview (சூழல்)", Width = 260, ReadOnly = true, Name = "Preview" };
+            var warnCol = new DataGridViewTextBoxColumn { HeaderText = "Notes (குறிப்பு)", Width = 180, ReadOnly = true, Name = "Warn" };
 
-            _grid.Columns.AddRange(chkCol, statusCol, refCol, ruleCol, origCol, repCol, warnCol);
+            _grid.Columns.AddRange(chkCol, statusCol, refCol, ruleCol, origCol, repCol, previewCol, warnCol);
 
             var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 75, Padding = new Padding(10) };
             _progressBar = new ProgressBar { Location = new Point(10, 10), Width = 300, Height = 20 };
@@ -265,9 +266,10 @@ namespace NumberConversions.Plugin.UI
             foreach (var p in list)
             {
                 string statusText = p.IsSuspicious ? "⚠️ Flagged" : "✓ Normal";
-                string ruleName = p.RuleType.ToString();
+                string ruleName = GetRuleDisplayName(p.RuleType);
+                string preview = GetContextPreview(p);
 
-                int rowIdx = _grid.Rows.Add(p.IsAccepted, statusText, p.Reference, ruleName, p.MatchedToken, p.Replacement, p.WarningReason);
+                int rowIdx = _grid.Rows.Add(p.IsAccepted, statusText, p.Reference, ruleName, p.MatchedToken, p.Replacement, preview, p.WarningReason);
                 var row = _grid.Rows[rowIdx];
                 row.Tag = p;
 
@@ -278,6 +280,51 @@ namespace NumberConversions.Plugin.UI
                     row.Cells["Status"].Style.Font = new Font("Segoe UI", 9.0f, FontStyle.Bold);
                 }
             }
+        }
+
+        private static string GetRuleDisplayName(ConversionRuleType ruleType)
+        {
+            switch (ruleType)
+            {
+                case ConversionRuleType.DigitToText:
+                    return "Digit ➔ Word (எண் ➔ சொல்)";
+                case ConversionRuleType.TextToDigit:
+                    return "Word ➔ Digit (சொல் ➔ எண்)";
+                case ConversionRuleType.SandhiAdjusted:
+                    return "Sandhi (புணர்ச்சி)";
+                case ConversionRuleType.SuspiciousSpelling:
+                    return "⚠️ Spelling (எழுத்துப் பிழை)";
+                case ConversionRuleType.SuspiciousSeparator:
+                    return "⚠️ Punctuation (நிறுத்தக் குறி)";
+                case ConversionRuleType.AlternateSpelling:
+                    return "Variant (மாற்று வடிவம்)";
+                default:
+                    return ruleType.ToString();
+            }
+        }
+
+        private static string GetContextPreview(ConversionProposal p)
+        {
+            if (string.IsNullOrWhiteSpace(p.OriginalText))
+                return $"[{p.Replacement}]";
+
+            int start = Math.Max(0, p.StartIndex);
+            int length = Math.Min(p.Length, Math.Max(0, p.OriginalText.Length - start));
+
+            // Get up to 35 characters before and 35 characters after
+            int prevStart = Math.Max(0, start - 35);
+            int nextEnd = Math.Min(p.OriginalText.Length, start + length + 35);
+
+            string before = p.OriginalText.Substring(prevStart, start - prevStart);
+            string after = p.OriginalText.Substring(start + length, nextEnd - (start + length));
+
+            string prefix = prevStart > 0 ? "..." : "";
+            string suffix = nextEnd < p.OriginalText.Length ? "..." : "";
+
+            before = before.Replace("\r", " ").Replace("\n", " ");
+            after = after.Replace("\r", " ").Replace("\n", " ");
+
+            return $"{prefix}{before}[{p.Replacement}]{after}{suffix}".Trim();
         }
 
         private void SetSelection(bool isSelected, bool onlyNormal)
