@@ -14,6 +14,11 @@ namespace NumberConversions.Tests
         [InlineData("இரண்டாயிரம்", "2,000")]
         [InlineData("ஐயாயிரம்", "5,000")]
         [InlineData("பத்தாயிரம்", "10,000")]
+        [InlineData("பதினாயிரம்", "10,000")]
+        [InlineData("நாற்பத்துநான்காயிரத்து எழுநூற்று அறுபது", "44,760")]
+        [InlineData("இருபத்தைந்தாயிரத்து ஐந்நூறு", "25,500")]
+        [InlineData("முப்பத்திரண்டாயிரத்து நானூறு", "32,400")]
+        [InlineData("எழுபத்துநான்காயிரத்து அறுநூறு", "74,600")]
         [InlineData("ஒரு லட்சம்", "1,00,000")]
         [InlineData("ஒரு லட்சத்து நாற்பத்து நான்காயிரம்", "1,44,000")]
         [InlineData("எட்டு லட்சம்", "8,00,000")]
@@ -58,6 +63,23 @@ namespace NumberConversions.Tests
         {
             string formatted = IndianNumberFormatter.Format(value);
             Assert.Equal(expected, formatted);
+        }
+
+        [Fact]
+        public void Chronicles1_5_18_FullVerseRegression_ConvertsFullyWithoutPartialSlice()
+        {
+            var engine = new TamilNumberConversionEngine();
+            string verse = "ரூபனியர்களிலும், காத்தியர்களிலும், மனாசேயின் பாதிக்கோத்திரத்தாரிலும் கேடகமும் பட்டயமும் எடுத்து, வில் எய்து, யுத்தத்திற்குப் பழகி, படைக்குப் போகத்தக்க வீரர்கள் நாற்பத்துநான்காயிரத்து எழுநூற்று அறுபது பேராக இருந்தார்கள்.";
+            
+            var proposals = engine.ScanText(verse, "1CH 5:18", 13, 5, 18, 0, adjustSandhi: true);
+            
+            Assert.Single(proposals);
+            Assert.Equal("நாற்பத்துநான்காயிரத்து எழுநூற்று அறுபது", proposals[0].MatchedToken);
+            Assert.Equal("44,760", proposals[0].Replacement);
+            
+            string result = engine.ApplyProposals(verse, proposals);
+            Assert.Contains("வீரர்கள் 44,760 பேராக", result);
+            Assert.DoesNotContain("நாற்பத்து4,760", result);
         }
     }
 }

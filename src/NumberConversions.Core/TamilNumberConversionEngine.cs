@@ -225,6 +225,15 @@ namespace NumberConversions.Core
 
                 int startPos = match.Index;
 
+                // CRITICAL WORD BOUNDARY GUARD:
+                // A Tamil number candidate must start at a word boundary!
+                // It must NOT start in the middle of a Tamil word (i.e. immediately preceded by a Tamil character).
+                if (startPos > 0 && IsTamilCharacter(text[startPos - 1]))
+                {
+                    scanIdx = startPos + match.Length;
+                    continue;
+                }
+
                 if (ScriptureProtectedEntities.IsProtectedTitlePrefix(text, startPos))
                 {
                     scanIdx = startPos + match.Length;
@@ -422,6 +431,11 @@ namespace NumberConversions.Core
             }
 
             return selected.OrderBy(p => p.StartIndex).ToList();
+        }
+
+        private static bool IsTamilCharacter(char c)
+        {
+            return c >= '\u0B80' && c <= '\u0BFF';
         }
     }
 }

@@ -104,6 +104,88 @@ namespace NumberConversions.Core
             { "தொண்ணூறைந்து", (95, "தொண்ணூற்றைந்து") }
         };
 
+        // Base values for tens combining with thousands (e.g. நாற்பத்து- + -நான்காயிரத்து = 44,000)
+        private static readonly (string Prefix, long BaseVal)[] TensCompoundBases = new (string, long)[]
+        {
+            ("இருபத்து", 20000), ("இருபத்த", 20000), ("இருபத்", 20000),
+            ("முப்பத்து", 30000), ("முப்பத்த", 30000), ("முப்பத்", 30000),
+            ("நாற்பத்து", 40000), ("நாற்பத்த", 40000), ("நாற்பத்", 40000),
+            ("ஐம்பத்து", 50000), ("ஐம்பத்த", 50000), ("ஐம்பத்", 50000),
+            ("அறுபத்து", 60000), ("அறுபத்த", 60000), ("அறுபத்", 60000),
+            ("எழுபத்து", 70000), ("எழுபத்த", 70000), ("எழுபத்", 70000),
+            ("எண்பத்து", 80000), ("எண்பத்த", 80000), ("எண்பத்", 80000),
+            ("தொண்ணூற்று", 90000), ("தொண்ணூற்ற", 90000), ("தொண்ணூற்", 90000)
+        };
+
+        // Thousand suffixes when joined to tens prefixes
+        private static readonly (string Remainder, long UnitVal)[] UnitThousandRemainders = new (string, long)[]
+        {
+            // Direct concatenations (consonant start)
+            ("நான்காயிரத்து", 4000), ("நான்காயிரம்", 4000), ("நான்காயிரத்த", 4000),
+            ("நாலாயிரத்து", 4000), ("நாலாயிரம்", 4000), ("நாலாயிரத்த", 4000),
+            ("மூவாயிரத்து", 3000), ("மூவாயிரம்", 3000), ("மூவாயிரத்த", 3000),
+            ("ஓராயிரத்து", 1000), ("ஓராயிரம்", 1000), ("ஓராயிரத்த", 1000),
+            ("ஒன்றாயிரத்து", 1000), ("ஒன்றாயிரம்", 1000),
+            ("இரண்டாயிரத்து", 2000), ("இரண்டாயிரம்", 2000),
+            ("ஐந்தாயிரத்து", 5000), ("ஐந்தாயிரம்", 5000),
+            ("ஐயாயிரத்து", 5000), ("ஐயாயிரம்", 5000),
+            ("ஆறாயிரத்து", 6000), ("ஆறாயிரம்", 6000),
+            ("ஏழாயிரத்து", 7000), ("ஏழாயிரம்", 7000),
+            ("எட்டாயிரத்து", 8000), ("எட்டாயிரம்", 8000),
+            ("ஒன்பதாயிரத்து", 9000), ("ஒன்பதாயிரம்", 9000),
+            ("ஆயிரத்து", 1000), ("ஆயிரம்", 1000),
+
+            // Vowel-coalesced forms with 'த்' (தோ, தி, தை, தா, தே, தெ, தொ)
+            ("தோராயிரத்து", 1000), ("தோராயிரம்", 1000),
+            ("திரண்டாயிரத்து", 2000), ("திரண்டாயிரம்", 2000),
+            ("தைந்தாயிரத்து", 5000), ("தைந்தாயிரம்", 5000),
+            ("தையாயிரத்து", 5000), ("தையாயிரம்", 5000),
+            ("தாறாயிரத்து", 6000), ("தாறாயிரம்", 6000),
+            ("தேழாயிரத்து", 7000), ("தேழாயிரம்", 7000),
+            ("தெட்டாயிரத்து", 8000), ("தெட்டாயிரம்", 8000),
+            ("தொன்பதாயிரத்து", 9000), ("தொன்பதாயிரம்", 9000),
+            ("தாயிரத்து", 1000), ("தாயிரம்", 1000),
+
+            // Vowel-coalesced forms with 'ற்' for தொண்ணூறு (றோ, றி, றை, றா, றே, றெ, றொ)
+            ("றோராயிரத்து", 1000), ("றோராயிரம்", 1000),
+            ("றிரண்டாயிரத்து", 2000), ("றிரண்டாயிரம்", 2000),
+            ("றைந்தாயிரத்து", 5000), ("றைந்தாயிரம்", 5000),
+            ("றையாயிரத்து", 5000), ("றையாயிரம்", 5000),
+            ("றாறாயிரத்து", 6000), ("றாறாயிரம்", 6000),
+            ("றேழாயிரத்து", 7000), ("றேழாயிரம்", 7000),
+            ("றெட்டாயிரத்து", 8000), ("றெட்டாயிரம்", 8000),
+            ("றொன்பதாயிரத்து", 9000), ("றொன்பதாயிரம்", 9000)
+        };
+
+        public static bool TryDecomposeCompoundThousands(string word, out long value)
+        {
+            value = 0;
+            if (string.IsNullOrWhiteSpace(word))
+                return false;
+
+            string clean = word.Trim();
+            if (clean.EndsWith("ப்") || clean.EndsWith("த்") || clean.EndsWith("க்") || clean.EndsWith("ச்"))
+                clean = clean.Substring(0, clean.Length - 2);
+
+            foreach (var tb in TensCompoundBases)
+            {
+                if (clean.StartsWith(tb.Prefix))
+                {
+                    string remainder = clean.Substring(tb.Prefix.Length);
+                    foreach (var ur in UnitThousandRemainders)
+                    {
+                        if (remainder == ur.Remainder)
+                        {
+                            value = tb.BaseVal + ur.UnitVal;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public static bool CheckForKnownTypo(string word, out long value, out string correctedSpelling)
         {
             value = 0;
@@ -171,6 +253,13 @@ namespace NumberConversions.Core
                 return true;
             }
 
+            // Compound tens-of-thousands (e.g. நாற்பத்துநான்காயிரத்து = 44,000, இருபத்தைந்தாயிரத்து = 25,000)
+            if (TryDecomposeCompoundThousands(clean, out long compoundThousandVal))
+            {
+                value = compoundThousandVal;
+                return true;
+            }
+
             // Direct word match with trailing sandhi stripped on oblique forms (e.g. இருநூற்றுப் -> இருநூற்று = 200, ஆயிரத்துப் -> ஆயிரத்து = 1000)
             if (clean.EndsWith("ப்") || clean.EndsWith("த்") || clean.EndsWith("க்") || clean.EndsWith("ச்"))
             {
@@ -209,7 +298,12 @@ namespace NumberConversions.Core
                     }
                 }
 
-                if (token == "கோடி" || token == "கோடியே")
+                if (TryDecomposeCompoundThousands(token, out long compVal))
+                {
+                    total += compVal;
+                    currentSegment = 0;
+                }
+                else if (token == "கோடி" || token == "கோடியே")
                 {
                     long mult = currentSegment == 0 ? 1 : currentSegment;
                     total += mult * 10000000;
