@@ -58,8 +58,11 @@ jobs:
           Copy-Item -Path "src/NumberConversions.Plugin/bin/Release/net48/NumberConversions.ptxplg" -Destination $packageDir -Force
           Copy-Item -Path "src/NumberConversions.Core/bin/Release/net48/NumberConversions.Core.dll" -Destination $packageDir -Force
           
-          # Copy installation script and docs
+          # Copy installation and uninstallation scripts and docs
           Copy-Item -Path "scripts/install-plugin.ps1" -Destination $packageDir -Force
+          Copy-Item -Path "scripts/install-plugin.bat" -Destination $packageDir -Force
+          Copy-Item -Path "scripts/uninstall-plugin.ps1" -Destination $packageDir -Force
+          Copy-Item -Path "scripts/uninstall-plugin.bat" -Destination $packageDir -Force
           Copy-Item -Path "README.md" -Destination $packageDir -Force
           Copy-Item -Path "LICENSE" -Destination $packageDir -Force
           

@@ -68,6 +68,14 @@ Write-Host "Installing from: $sourceDir" -ForegroundColor Cyan
 Copy-Item "$sourceDir\NumberConversions.ptxplg" -Destination $targetPluginDir -Force
 Copy-Item "$sourceDir\NumberConversions.Core.dll" -Destination $targetPluginDir -Force
 
+$uninstallScript = Join-Path $sourceDir "uninstall-plugin.ps1"
+if (-not (Test-Path $uninstallScript)) {
+    $uninstallScript = Join-Path $PSScriptRoot "uninstall-plugin.ps1"
+}
+if (Test-Path $uninstallScript) {
+    Copy-Item $uninstallScript -Destination $targetPluginDir -Force
+}
+
 Write-Host "Copied plugin assemblies successfully:" -ForegroundColor Green
 Get-ChildItem $targetPluginDir | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
 

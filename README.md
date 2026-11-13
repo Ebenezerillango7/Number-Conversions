@@ -119,6 +119,25 @@ For detailed specifications on sandhi rules (புணர்ச்சி), compo
 
 ---
 
+## 🗑️ Clean Uninstallation
+
+Translators never need to reinstall Paratext 9 to remove the plugin. You can cleanly remove it in two ways:
+
+### Method 1: In-App (From Within Paratext)
+1. Open the plugin window via **Tools $\rightarrow$ Tamil Number Conversions...**.
+2. Click the **"Uninstall Plugin..."** button in the top-right corner.
+3. Confirm the prompt and close Paratext when asked.
+4. The background assistant waits for Paratext to exit, deletes the plugin files, rebuilds the plugin cache, and notifies you when complete.
+
+### Method 2: 1-Click Uninstaller Script
+1. Ensure Paratext 9 is closed.
+2. In the extracted folder, double-click **`uninstall-plugin.bat`** (or right-click `uninstall-plugin.ps1` and choose **Run with PowerShell**).
+3. The script locates Paratext 9, removes `<ParatextDir>\plugins\NumberConversions\`, and refreshes `AddIns.store`.
+
+> **Note on Scripture Safety**: Uninstallation only removes the plugin software. Your biblical text (`.sfm` / `.usfm` files), project settings, and project notes are **never** altered or deleted. If you ever wish to revert any text changes previously applied, you can do so at any time using Paratext's built-in **Project History**.
+
+---
+
 ## 🗺️ Project Roadmap & Issues
 
 The implementation plan is tracked in [docs/GITHUB_ISSUES_ROADMAP.md](file:///d:/Projects/Number%20Conversions/docs/GITHUB_ISSUES_ROADMAP.md):
