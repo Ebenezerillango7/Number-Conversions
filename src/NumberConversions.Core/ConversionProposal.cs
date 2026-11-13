@@ -6,6 +6,7 @@ namespace NumberConversions.Core
     {
         DigitToText,          // 0 - 199 to Tamil Words
         TextToDigit,          // 200+ to Formatted Digits
+        SandhiAdjusted,       // Sandhi added or removed at word boundary (புணர்ச்சி)
         AlternateSpelling,    // Alternate / Dialectal spelling normalized (e.g. ஐந்தாயிரம் vs ஐயாயிரம்)
         SuspiciousSpelling,   // Suspected typo / spelling mistake (e.g. அறுபதைந்து instead of அறுபத்தைந்து)
         SuspiciousSeparator   // Suspected wrong separator (e.g. 5.673 or 5, 673 instead of 5,673)

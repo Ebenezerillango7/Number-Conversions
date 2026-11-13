@@ -34,7 +34,7 @@ namespace NumberConversions.Core
 
         // Candidate start words for Tamil numbers
         private static readonly Regex TamilCandidateStartPattern = new Regex(
-            @"(?:ஒரு|ஓர்|இரண்டாயிரத்து|இரண்டாயிரம்|இரண்டு|ஈராயிரம்|மூவாயிரத்து|மூவாயிரம்|மூன்று|நான்காயிரத்து|நான்காயிரம்|நான்கு|நாலாயிரத்து|நாலாயிரம்|நாலு|ஐயாயிரத்து|ஐயாயிரம்|ஐந்தாயிரத்து|ஐந்தாயிரம்|ஐந்து|ஆறாயிரத்து|ஆறாயிரம்|ஆறு|ஏழாயிரத்து|ஏழாயிரம்|ஏழு|எட்டாயிரத்து|எட்டாயிரம்|எட்டு|ஒன்பதாயிரத்து|ஒன்பதாயிரம்|ஒன்பது|பத்தாயிரத்து|பத்தாயிரம்|பத்து|இருபது|இருபத்து|இருபத்த|இருபதைந்து|முப்பது|முப்பத்து|முப்பத்த|முப்பதைந்து|முப்பதாயிரம்|முப்பத்தாயிரம்|நாற்பது|நாற்பத்து|நாற்பத்த|நாற்பதைந்து|நாற்பதாயிரம்|நாற்பத்தாயிரம்|நால்பது|ஐம்பது|ஐம்பத்து|ஐம்பத்த|ஐம்பதைந்து|ஐம்பதாயிரம்|ஐம்பத்தாயிரம்|அறுபது|அறுபத்து|அறுபத்த|அறுபதைந்து|அறுபதாயிரம்|அறுபத்தாயிரம்|எழுபது|எழுபத்து|எழுபத்த|எழுபதைந்து|எழுபதாயிரம்|எழுபத்தாயிரம்|எண்பது|எண்பத்து|எண்பத்த|எண்பதைந்து|எண்பதாயிரம்|எண்பத்தாயிரம்|தொண்ணூறு|தொண்ணூற்று|தொண்ணூற|தொண்ணூறைந்து|தொண்ணூறாயிரம்|நூறு|நூற்று|இருநூறு|இருநூற்று|இருநூற|முந்நூறு|முந்நூற்று|முந்நூற|முன்னூறு|முன்னூற்று|முன்னூற|நானூறு|நானூற்று|நானூற|ஐந்நூறு|ஐந்நூற்று|ஐந்நூற|ஐநூறு|ஐநூற்று|ஐநூற|அறுநூறு|அறுநூற்று|அறுநூற|எழுநூறு|எழுநூற்று|எழுநூற|எண்ணூறு|எண்ணூற்று|எண்ணூற|தொள்ளாயிரம்|தொள்ளாயிரத்து|தொள்ளாயிரத்த|ஆயிரம்|ஆயிரத்து|ஆயிரத்த|ஓராயிரம்|லட்சம்|இலட்சம்|லட்சத்து|இலட்சத்து|இலக்கம்|லச்சம்|கோடி|கோடியே)(?:-?ஆம்|-?வது)?",
+            @"(?:ஒரு|ஓர்|இரண்டாயிரத்து|இரண்டாயிரம்|இரண்டு|ஈராயிரம்|மூவாயிரத்து|மூவாயிரம்|மூன்று|நான்காயிரத்து|நான்காயிரம்|நான்கு|நாலாயிரத்து|நாலாயிரம்|நாலு|ஐயாயிரத்து|ஐயாயிரம்|ஐந்தாயிரத்து|ஐந்தாயிரம்|ஐந்து|ஆறாயிரத்து|ஆறாயிரம்|ஆறு|ஏழாயிரத்து|ஏழாயிரம்|ஏழு|எட்டாயிரத்து|எட்டாயிரம்|எட்டு|ஒன்பதாயிரத்து|ஒன்பதாயிரம்|ஒன்பது|பத்தாயிரத்து|பத்தாயிரம்|பதினாயிரத்து|பதினாயிரம்|பதினோராயிரத்து|பதினோராயிரம்|பன்னீராயிரத்து|பன்னீராயிரம்|பதின்மூவாயிரத்து|பதின்மூவாயிரம்|பதினான்காயிரத்து|பதினான்காயிரம்|பதினைந்தாயிரத்து|பதினைந்தாயிரம்|பதினையாயிரத்து|பதினையாயிரம்|பதினாறாயிரத்து|பதினாறாயிரம்|பதினேழாயிரத்து|பதினேழாயிரம்|பதினெட்டாயிரத்து|பதினெட்டாயிரம்|பத்தொன்பதாயிரத்து|பத்தொன்பதாயிரம்|பத்து|இருபது|இருபத்து|இருபத்த|இருபதைந்து|முப்பது|முப்பத்து|முப்பத்த|முப்பதைந்து|முப்பதாயிரம்|முப்பத்தாயிரம்|நாற்பது|நாற்பத்து|நாற்பத்த|நாற்பதைந்து|நாற்பதாயிரம்|நாற்பத்தாயிரம்|நால்பது|ஐம்பது|ஐம்பத்து|ஐம்பத்த|ஐம்பதைந்து|ஐம்பதாயிரம்|ஐம்பத்தாயிரம்|அறுபது|அறுபத்து|அறுபத்த|அறுபதைந்து|அறுபதாயிரம்|அறுபத்தாயிரம்|எழுபது|எழுபத்து|எழுபத்த|எழுபதைந்து|எழுபதாயிரம்|எழுபத்தாயிரம்|எண்பது|எண்பத்து|எண்பத்த|எண்பதைந்து|எண்பதாயிரம்|எண்பத்தாயிரம்|தொண்ணூறு|தொண்ணூற்று|தொண்ணூற|தொண்ணூறைந்து|தொண்ணூறாயிரம்|நூறு|நூற்று|இருநூறு|இருநூற்று|இருநூற|முந்நூறு|முந்நூற்று|முந்நூற|முன்னூறு|முன்னூற்று|முன்னூற|நானூறு|நானூற்று|நானூற|ஐந்நூறு|ஐந்நூற்று|ஐந்நூற|ஐநூறு|ஐநூற்று|ஐநூற|அறுநூறு|அறுநூற்று|அறுநூற|எழுநூறு|எழுநூற்று|எழுநூற|எண்ணூறு|எண்ணூற்று|எண்ணூற|தொள்ளாயிரம்|தொள்ளாயிரத்து|தொள்ளாயிரத்த|ஆயிரம்|ஆயிரத்து|ஆயிரத்த|ஓராயிரம்|லட்சம்|இலட்சம்|லட்சத்து|இலட்சத்து|இலக்கம்|லச்சம்|கோடி|கோடியே)(?:-?ஆம்|-?வது)?[க்|ச்|த்|ப்]?",
             RegexOptions.Compiled);
 
         public List<ConversionProposal> ScanText(
@@ -43,7 +43,8 @@ namespace NumberConversions.Core
             int bookNum = 0,
             int chapterNum = 0,
             int verseNum = 0,
-            int tokenIndex = 0)
+            int tokenIndex = 0,
+            bool adjustSandhi = true)
         {
             var proposals = new List<ConversionProposal>();
             if (string.IsNullOrWhiteSpace(text))
@@ -80,6 +81,34 @@ namespace NumberConversions.Core
                         replacement = TamilCardinalToTextConverter.Convert((int)numVal);
                     }
 
+                    int start = match.Index;
+                    int length = match.Length;
+                    string matchedToken = match.Value;
+                    var ruleType = ConversionRuleType.DigitToText;
+                    string context = string.Empty;
+
+                    if (adjustSandhi)
+                    {
+                        // Check following stop (e.g. 10 பேர் -> பத்துப் பேர்)
+                        if (TamilSandhiEngine.TryAdjustFollowingSandhiForWords(text, match.Index + match.Length, replacement, out string adjFollow, out string followContext))
+                        {
+                            replacement = adjFollow;
+                            ruleType = ConversionRuleType.SandhiAdjusted;
+                            context = followContext;
+                        }
+
+                        // Check preceding trigger (e.g. ஏறக்குறைய 10 -> ஏறக்குறையப் பத்து)
+                        if (TamilSandhiEngine.TryAdjustPrecedingSandhiForWords(text, match.Index, match.Length, replacement, out int newStart, out int newLen, out string newMatched, out string newRep, out string precContext))
+                        {
+                            start = newStart;
+                            length = newLen;
+                            matchedToken = newMatched;
+                            replacement = newRep;
+                            ruleType = ConversionRuleType.SandhiAdjusted;
+                            context = string.IsNullOrEmpty(context) ? precContext : $"{precContext}; {context}";
+                        }
+                    }
+
                     proposals.Add(new ConversionProposal
                     {
                         Reference = verseRef,
@@ -88,14 +117,15 @@ namespace NumberConversions.Core
                         VerseNum = verseNum,
                         TokenIndex = tokenIndex,
                         TokenOriginalText = text,
-                        MatchedToken = match.Value,
+                        MatchedToken = matchedToken,
                         Replacement = replacement,
-                        StartIndex = match.Index,
-                        Length = match.Length,
+                        StartIndex = start,
+                        Length = length,
                         OriginalText = text,
-                        RuleType = ConversionRuleType.DigitToText,
+                        RuleType = ruleType,
                         IsAccepted = true,
-                        IsSuspicious = false
+                        IsSuspicious = false,
+                        WarningReason = context
                     });
                 }
                 else if (numVal >= 1000)
@@ -252,6 +282,26 @@ namespace NumberConversions.Core
 
                 if (!string.IsNullOrEmpty(bestPhrase))
                 {
+                    int start = startPos;
+                    int length = bestLength;
+                    string matchedToken = bestPhrase;
+                    string replacement = bestDigits;
+                    var ruleType = ConversionRuleType.TextToDigit;
+                    string context = string.Empty;
+
+                    if (adjustSandhi)
+                    {
+                        if (TamilSandhiEngine.TryAdjustPrecedingSandhiForDigits(text, startPos, bestLength, bestDigits, out int newStart, out int newLen, out string newMatched, out string newRep, out string sandhiContext))
+                        {
+                            start = newStart;
+                            length = newLen;
+                            matchedToken = newMatched;
+                            replacement = newRep;
+                            ruleType = ConversionRuleType.SandhiAdjusted;
+                            context = sandhiContext;
+                        }
+                    }
+
                     proposals.Add(new ConversionProposal
                     {
                         Reference = verseRef,
@@ -260,14 +310,15 @@ namespace NumberConversions.Core
                         VerseNum = verseNum,
                         TokenIndex = tokenIndex,
                         TokenOriginalText = text,
-                        MatchedToken = bestPhrase,
-                        Replacement = bestDigits,
-                        StartIndex = startPos,
-                        Length = bestLength,
+                        MatchedToken = matchedToken,
+                        Replacement = replacement,
+                        StartIndex = start,
+                        Length = length,
                         OriginalText = text,
-                        RuleType = ConversionRuleType.TextToDigit,
+                        RuleType = ruleType,
                         IsAccepted = true,
-                        IsSuspicious = false
+                        IsSuspicious = false,
+                        WarningReason = context
                     });
 
                     scanIdx = startPos + bestLength;

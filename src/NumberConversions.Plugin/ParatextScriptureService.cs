@@ -17,7 +17,7 @@ namespace NumberConversions.Plugin
             _engine = new TamilNumberConversionEngine();
         }
 
-        public List<ConversionProposal> ScanBook(IProject project, int bookNum, Action<int, int>? progressCallback = null)
+        public List<ConversionProposal> ScanBook(IProject project, int bookNum, bool adjustSandhi = true, Action<int, int>? progressCallback = null)
         {
             var proposals = new List<ConversionProposal>();
             if (project == null)
@@ -73,7 +73,7 @@ namespace NumberConversions.Plugin
                         int verseNum = token.VerseRef != null ? token.VerseRef.VerseNum : 0;
 
                         // Bind proposal strictly to this specific tokenIndex (i) and verse
-                        var tokenProposals = _engine.ScanText(text, verseRefStr, bookNum, chapter, verseNum, i);
+                        var tokenProposals = _engine.ScanText(text, verseRefStr, bookNum, chapter, verseNum, i, adjustSandhi);
                         proposals.AddRange(tokenProposals);
                     }
                 }

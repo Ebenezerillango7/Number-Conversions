@@ -21,6 +21,7 @@ namespace NumberConversions.Plugin.UI
         private ComboBox _cboBooks = null!;
         private ComboBox _cboFilter = null!;
         private Button _btnScan = null!;
+        private CheckBox _chkSandhi = null!;
         private DataGridView _grid = null!;
         private ProgressBar _progressBar = null!;
         private Label _lblStatus = null!;
@@ -52,20 +53,29 @@ namespace NumberConversions.Plugin.UI
 
             var topPanel = new Panel { Dock = DockStyle.Top, Height = 55, Padding = new Padding(10) };
             var lblProj = new Label { Text = "Project:", AutoSize = true, Location = new Point(10, 18) };
-            _cboProjects = new ComboBox { Location = new Point(65, 15), Width = 160, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cboProjects = new ComboBox { Location = new Point(65, 15), Width = 140, DropDownStyle = ComboBoxStyle.DropDownList };
             _cboProjects.SelectedIndexChanged += (s, e) => LoadBooks();
 
-            var lblBook = new Label { Text = "Book:", AutoSize = true, Location = new Point(235, 18) };
-            _cboBooks = new ComboBox { Location = new Point(275, 15), Width = 140, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblBook = new Label { Text = "Book:", AutoSize = true, Location = new Point(215, 18) };
+            _cboBooks = new ComboBox { Location = new Point(255, 15), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            var lblFilter = new Label { Text = "View:", AutoSize = true, Location = new Point(425, 18) };
-            _cboFilter = new ComboBox { Location = new Point(465, 15), Width = 160, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblFilter = new Label { Text = "View:", AutoSize = true, Location = new Point(385, 18) };
+            _cboFilter = new ComboBox { Location = new Point(425, 15), Width = 140, DropDownStyle = ComboBoxStyle.DropDownList };
             _cboFilter.Items.AddRange(new object[] { "All Candidates", "Normal Conversions", "Flagged / Suspicious Only" });
             _cboFilter.SelectedIndex = 0;
             _cboFilter.SelectedIndexChanged += (s, e) => RefreshGrid();
 
-            _btnScan = new Button { Text = "Scan Numbers", Location = new Point(640, 13), Width = 130, Height = 28 };
+            _btnScan = new Button { Text = "Scan Numbers", Location = new Point(575, 13), Width = 120, Height = 28 };
             _btnScan.Click += BtnScan_Click;
+
+            _chkSandhi = new CheckBox
+            {
+                Text = "Sandhi Check (புணர்ச்சி)",
+                Checked = true,
+                AutoSize = true,
+                Location = new Point(705, 17),
+                Cursor = Cursors.Hand
+            };
 
             _btnUninstall = new Button
             {
@@ -82,14 +92,14 @@ namespace NumberConversions.Plugin.UI
             {
                 if (_btnUninstall != null && topPanel != null)
                 {
-                    int x = Math.Max(780, topPanel.ClientSize.Width - _btnUninstall.Width - 15);
+                    int x = Math.Max(890, topPanel.ClientSize.Width - _btnUninstall.Width - 15);
                     _btnUninstall.Location = new Point(x, 13);
                 }
             }
             topPanel.Resize += (s, e) => PositionTopControls();
             topPanel.Layout += (s, e) => PositionTopControls();
 
-            topPanel.Controls.AddRange(new Control[] { lblProj, _cboProjects, lblBook, _cboBooks, lblFilter, _cboFilter, _btnScan, _btnUninstall });
+            topPanel.Controls.AddRange(new Control[] { lblProj, _cboProjects, lblBook, _cboBooks, lblFilter, _cboFilter, _btnScan, _chkSandhi, _btnUninstall });
             PositionTopControls();
 
             _grid = new DataGridView
@@ -222,7 +232,7 @@ namespace NumberConversions.Plugin.UI
 
             try
             {
-                _currentProposals.AddRange(_service.ScanBook(proj, book.BookNum, (chap, total) =>
+                _currentProposals.AddRange(_service.ScanBook(proj, book.BookNum, _chkSandhi.Checked, (chap, total) =>
                 {
                     _progressBar.Maximum = total;
                     _progressBar.Value = chap;

@@ -64,6 +64,17 @@ namespace NumberConversions.Core
             { "எட்டாயிரம்", 8000 }, { "எட்டாயிரத்து", 8000 },
             { "ஒன்பதாயிரம்", 9000 }, { "ஒன்பதாயிரத்து", 9000 },
             { "பத்தாயிரம்", 10000 }, { "பத்தாயிரத்து", 10000 },
+            { "பதினாயிரம்", 10000 }, { "பதினாயிரத்து", 10000 }, { "பதினாயிரத்த", 10000 },
+            { "பதினோராயிரம்", 11000 }, { "பதினோராயிரத்து", 11000 },
+            { "பன்னீராயிரம்", 12000 }, { "பன்னீராயிரத்து", 12000 },
+            { "பதின்மூவாயிரம்", 13000 }, { "பதின்மூவாயிரத்து", 13000 },
+            { "பதினான்காயிரம்", 14000 }, { "பதினான்காயிரத்து", 14000 },
+            { "பதினைந்தாயிரம்", 15000 }, { "பதினைந்தாயிரத்து", 15000 },
+            { "பதினையாயிரம்", 15000 }, { "பதினையாயிரத்து", 15000 },
+            { "பதினாறாயிரம்", 16000 }, { "பதினாறாயிரத்து", 16000 },
+            { "பதினேழாயிரம்", 17000 }, { "பதினேழாயிரத்து", 17000 },
+            { "பதினெட்டாயிரம்", 18000 }, { "பதினெட்டாயிரத்து", 18000 },
+            { "பத்தொன்பதாயிரம்", 19000 }, { "பத்தொன்பதாயிரத்து", 19000 },
             { "இருபதாயிரம்", 20000 }, { "இருபதாயிரத்து", 20000 },
             { "முப்பதாயிரம்", 30000 }, { "முப்பத்தாயிரம்", 30000 },
             { "நாற்பதாயிரம்", 40000 }, { "நாற்பத்தாயிரம்", 40000 },
@@ -160,6 +171,17 @@ namespace NumberConversions.Core
                 return true;
             }
 
+            // Direct word match with trailing sandhi stripped on oblique forms (e.g. இருநூற்றுப் -> இருநூற்று = 200, ஆயிரத்துப் -> ஆயிரத்து = 1000)
+            if (clean.EndsWith("ப்") || clean.EndsWith("த்") || clean.EndsWith("க்") || clean.EndsWith("ச்"))
+            {
+                string stripped = clean.Substring(0, clean.Length - 2);
+                if (DirectWordValues.TryGetValue(stripped, out long strippedVal))
+                {
+                    value = strippedVal;
+                    return true;
+                }
+            }
+
             // Restored 'ு'
             if (DirectWordValues.TryGetValue(clean + "ு", out long restoredVal))
             {
@@ -178,6 +200,14 @@ namespace NumberConversions.Core
             for (int i = 0; i < tokens.Length; i++)
             {
                 string token = tokens[i];
+                if (i == tokens.Length - 1 && (token.EndsWith("ப்") || token.EndsWith("த்") || token.EndsWith("க்") || token.EndsWith("ச்")))
+                {
+                    string candidate = token.Substring(0, token.Length - 2);
+                    if (candidate.EndsWith("த்து") || candidate.EndsWith("ற்று") || candidate.EndsWith("ாயிரத்து") || candidate.EndsWith("ாயிரத்த") || DirectWordValues.ContainsKey(candidate))
+                    {
+                        token = candidate;
+                    }
+                }
 
                 if (token == "கோடி" || token == "கோடியே")
                 {
