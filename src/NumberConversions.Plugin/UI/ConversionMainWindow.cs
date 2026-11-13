@@ -119,7 +119,7 @@ namespace NumberConversions.Plugin.UI
             var ruleCol = new DataGridViewTextBoxColumn { HeaderText = "Type (வகை)", Width = 185, ReadOnly = true, Name = "Rule" };
             var origCol = new DataGridViewTextBoxColumn { HeaderText = "Original (மூலம்)", Width = 130, ReadOnly = true, Name = "Orig" };
             var repCol = new DataGridViewTextBoxColumn { HeaderText = "Proposed (மாற்றம்)", Width = 150, ReadOnly = true, Name = "Rep" };
-            var previewCol = new DataGridViewTextBoxColumn { HeaderText = "Context Preview (சூழல்)", Width = 280, ReadOnly = true, Name = "Preview" };
+            var previewCol = new DataGridViewTextBoxColumn { HeaderText = "Impact Preview (மாற்ற முன்னோட்டம்)", Width = 280, ReadOnly = true, Name = "Preview" };
             var warnCol = new DataGridViewTextBoxColumn { HeaderText = "Notes (குறிப்பு)", Width = 220, ReadOnly = true, Name = "Warn" };
 
             _grid.Columns.AddRange(chkCol, statusCol, refCol, ruleCol, origCol, repCol, previewCol, warnCol);
@@ -268,7 +268,7 @@ namespace NumberConversions.Plugin.UI
             {
                 string statusText = p.IsSuspicious ? "⚠️ Flagged" : "✓ Normal";
                 string ruleName = GetRuleDisplayName(p.RuleType);
-                string preview = GetContextPreview(p);
+                string preview = GetImpactPreview(p);
 
                 int rowIdx = _grid.Rows.Add(p.IsAccepted, statusText, p.Reference, ruleName, p.MatchedToken, p.Replacement, preview, p.WarningReason);
                 var row = _grid.Rows[rowIdx];
@@ -304,69 +304,79 @@ namespace NumberConversions.Plugin.UI
             }
         }
 
-        private static string GetContextPreview(ConversionProposal p)
+        private static string GetImpactPreview(ConversionProposal p)
+        {
+            if (string.IsNullOrWhiteSpace(p.Replacement))
+                return p.MatchedToken;
+
+            // Condition 2: Preceding word sandhi changed (e.g. ஏறக்குறையப் 10,000 -> ஏறக்குறைய 10,000)
+            if (p.RuleType == ConversionRuleType.SandhiAdjusted &&
+                (p.WarningReason.Contains("trailing") || p.WarningReason.Contains("Preceding") || p.WarningReason.Contains("Added 'ப்' to")))
+            {
+                return p.Replacement;
+            }
+
+            // Condition 3: Current number conversion word sandhi changed with following word (e.g. 10 பேர் -> பத்துப் பேர்)
+            if (p.RuleType == ConversionRuleType.SandhiAdjusted &&
+                p.WarningReason.Contains("after '") && p.WarningReason.Contains("before '"))
+            {
+                string nextWord = GetImmediateNextWord(p);
+                return string.IsNullOrEmpty(nextWord) ? p.Replacement : $"{p.Replacement} {nextWord}";
+            }
+
+            // Condition 4: Compound join with next word (Option B: 13 ஆம் ➔ பதின்மூன்றாம்)
+            if (IsCompoundJoin(p))
+            {
+                return $"{p.MatchedToken} ➔ {p.Replacement}";
+            }
+
+            // Suspicious / Typo proposals
+            if (p.IsSuspicious)
+            {
+                return $"{p.MatchedToken} ➔ {p.Replacement}";
+            }
+
+            // Condition 1: Standard number conversion alone
+            return p.Replacement;
+        }
+
+        private static bool IsCompoundJoin(ConversionProposal p)
+        {
+            if (string.IsNullOrEmpty(p.MatchedToken))
+                return false;
+
+            if (p.MatchedToken.Contains(" ") || p.MatchedToken.Contains("-"))
+            {
+                if (p.MatchedToken.EndsWith("ஆம்") || p.MatchedToken.EndsWith("ஆவது") ||
+                    p.MatchedToken.EndsWith("வது") || p.MatchedToken.EndsWith("ம்") ||
+                    p.MatchedToken.EndsWith("இல்") || p.MatchedToken.EndsWith("க்கு") ||
+                    p.MatchedToken.EndsWith("இலிருந்து") || p.MatchedToken.EndsWith("லிருந்து") ||
+                    p.MatchedToken.EndsWith("ஐ") || p.MatchedToken.EndsWith("st") ||
+                    p.MatchedToken.EndsWith("nd") || p.MatchedToken.EndsWith("rd") || p.MatchedToken.EndsWith("th"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetImmediateNextWord(ConversionProposal p)
         {
             if (string.IsNullOrWhiteSpace(p.OriginalText))
-                return $"[{p.Replacement}]";
+                return string.Empty;
 
             string text = p.OriginalText;
-            int start = Math.Max(0, p.StartIndex);
-            int length = Math.Min(p.Length, Math.Max(0, text.Length - start));
+            int j = p.StartIndex + p.Length;
+            while (j < text.Length && char.IsWhiteSpace(text[j])) j++;
 
-            // 1. Immediate previous word (scanning backwards from start - 1)
-            int i = start - 1;
-            while (i >= 0 && char.IsWhiteSpace(text[i]))
-            {
-                i--;
-            }
+            if (j >= text.Length)
+                return string.Empty;
 
-            string prevWord = string.Empty;
-            if (i >= 0)
-            {
-                int prevWordEnd = i;
-                while (i >= 0 && !char.IsWhiteSpace(text[i]))
-                {
-                    i--;
-                }
-                prevWord = text.Substring(i + 1, prevWordEnd - i).Trim();
-            }
+            int nextStart = j;
+            while (j < text.Length && !char.IsWhiteSpace(text[j])) j++;
 
-            // 2. Immediate next word (scanning forwards from start + length)
-            int j = start + length;
-            while (j < text.Length && char.IsWhiteSpace(text[j]))
-            {
-                j++;
-            }
-
-            string nextWord = string.Empty;
-            if (j < text.Length)
-            {
-                int nextWordStart = j;
-                while (j < text.Length && !char.IsWhiteSpace(text[j]))
-                {
-                    j++;
-                }
-                nextWord = text.Substring(nextWordStart, j - nextWordStart).Trim();
-            }
-
-            // Clean up newline artifacts
-            prevWord = prevWord.Replace("\r", "").Replace("\n", "");
-            nextWord = nextWord.Replace("\r", "").Replace("\n", "");
-
-            if (!string.IsNullOrEmpty(prevWord) && !string.IsNullOrEmpty(nextWord))
-            {
-                return $"{prevWord} [{p.Replacement}] {nextWord}";
-            }
-            if (!string.IsNullOrEmpty(prevWord))
-            {
-                return $"{prevWord} [{p.Replacement}]";
-            }
-            if (!string.IsNullOrEmpty(nextWord))
-            {
-                return $"[{p.Replacement}] {nextWord}";
-            }
-
-            return $"[{p.Replacement}]";
+            return text.Substring(nextStart, j - nextStart).Replace("\r", "").Replace("\n", "").Trim();
         }
 
         private void SetSelection(bool isSelected, bool onlyNormal)
