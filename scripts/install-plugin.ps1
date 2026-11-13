@@ -76,6 +76,13 @@ if (Test-Path $uninstallScript) {
     Copy-Item $uninstallScript -Destination $targetPluginDir -Force
 }
 
+# Unblock files to remove Windows "Mark of the Web" (Zone.Identifier) on downloaded zip files
+try {
+    Get-ChildItem -Path $targetPluginDir -File | Unblock-File -ErrorAction SilentlyContinue
+    Write-Host "Unblocked plugin files for Windows security compliance." -ForegroundColor Green
+}
+catch { }
+
 Write-Host "Copied plugin assemblies successfully:" -ForegroundColor Green
 Get-ChildItem $targetPluginDir | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
 
