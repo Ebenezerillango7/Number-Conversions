@@ -18,8 +18,9 @@ namespace NumberConversions.Core
     public class TamilNumberConversionEngine
     {
         // Matches the entire whole digit number (including Indian/international comma groupings)
+        // Supports ordinals and suffixes whether directly attached (13ஆம், 13-ஆம்), separated by hyphen (13 - ஆம்), or space (13 ஆம், 13 ஆவது)
         private static readonly Regex WholeDigitNumberPattern = new Regex(
-            @"(?<!\d|\d,)(\d{1,3}(?:,\d{2,3})*|\d+)(st|nd|rd|th|-?ஆம்|-?வது|ம்)?(?!\d|,\d)",
+            @"(?<!\d|\d,)(\d{1,3}(?:,\d{2,3})*|\d+)(?:(?:\s*-\s*|\s+)?(st|nd|rd|th|ஆம்|ஆவது|வது|ம்|இல்|இலிருந்து|லிருந்து|க்கு|உக்கு|ஐ)(?![A-Za-z\u0B80-\u0BFF]))?(?!\d|,\d)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Regex for malformed separators: e.g. 5.673 (period instead of comma for thousands)
@@ -74,7 +75,14 @@ namespace NumberConversions.Core
                     string replacement;
                     if (!string.IsNullOrEmpty(suffix))
                     {
-                        replacement = TamilOrdinalToTextConverter.Convert((int)numVal);
+                        if (TamilSuffixCompoundingEngine.TryConvertNumberWithSuffix((int)numVal, suffix, out string suffixedWord))
+                        {
+                            replacement = suffixedWord;
+                        }
+                        else
+                        {
+                            replacement = TamilOrdinalToTextConverter.Convert((int)numVal);
+                        }
                     }
                     else
                     {
@@ -128,7 +136,7 @@ namespace NumberConversions.Core
                         WarningReason = context
                     });
                 }
-                else if (numVal >= 1000)
+                else if (numVal >= 200)
                 {
                     string expectedFormatted = IndianNumberFormatter.Format(numVal);
                     if (!string.IsNullOrEmpty(suffix))

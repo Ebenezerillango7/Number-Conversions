@@ -219,17 +219,36 @@ namespace NumberConversions.Core
             if (clean.EndsWith("-ஆம்"))
             {
                 isOrdinal = true;
-                clean = clean.Substring(0, clean.Length - 4).Trim();
+                clean = clean.Substring(0, clean.Length - "-ஆம்".Length).Trim();
             }
             else if (clean.EndsWith("ஆம்"))
             {
                 isOrdinal = true;
-                clean = clean.Substring(0, clean.Length - 3).Trim();
+                clean = clean.Substring(0, clean.Length - "ஆம்".Length).Trim();
             }
             else if (clean.EndsWith("ாம்"))
             {
                 isOrdinal = true;
-                clean = clean.Substring(0, clean.Length - 3).Trim();
+                clean = clean.Substring(0, clean.Length - "ாம்".Length).Trim();
+                if (DirectWordValues.ContainsKey(clean + "ு"))
+                {
+                    clean += "ு";
+                }
+            }
+            else if (clean.EndsWith("-ஆவது"))
+            {
+                isOrdinal = true;
+                clean = clean.Substring(0, clean.Length - "-ஆவது".Length).Trim();
+            }
+            else if (clean.EndsWith("ஆவது"))
+            {
+                isOrdinal = true;
+                clean = clean.Substring(0, clean.Length - "ஆவது".Length).Trim();
+            }
+            else if (clean.EndsWith("ாவது"))
+            {
+                isOrdinal = true;
+                clean = clean.Substring(0, clean.Length - "ாவது".Length).Trim();
                 if (DirectWordValues.ContainsKey(clean + "ு"))
                 {
                     clean += "ு";
@@ -238,12 +257,16 @@ namespace NumberConversions.Core
             else if (clean.EndsWith("-வது"))
             {
                 isOrdinal = true;
-                clean = clean.Substring(0, clean.Length - 4).Trim();
+                clean = clean.Substring(0, clean.Length - "-வது".Length).Trim();
             }
             else if (clean.EndsWith("வது"))
             {
                 isOrdinal = true;
-                clean = clean.Substring(0, clean.Length - 3).Trim();
+                clean = clean.Substring(0, clean.Length - "வது".Length).Trim();
+                if (DirectWordValues.ContainsKey(clean + "ு"))
+                {
+                    clean += "ு";
+                }
             }
 
             // Direct word match
