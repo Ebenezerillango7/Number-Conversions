@@ -47,7 +47,7 @@ namespace NumberConversions.Plugin.UI
         private void InitializeComponent()
         {
             Text = "Tamil Scripture Number Conversions - Paratext 9.5";
-            Size = new Size(1100, 700);
+            Size = new Size(1180, 720);
             StartPosition = FormStartPosition.CenterScreen;
             Font = new Font("Segoe UI", 9.5f);
 
@@ -109,17 +109,18 @@ namespace NumberConversions.Plugin.UI
                 AllowUserToDeleteRows = false,
                 RowHeadersVisible = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                ScrollBars = ScrollBars.Both,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
             };
 
             var chkCol = new DataGridViewCheckBoxColumn { HeaderText = "Apply (ஏற்க)", Width = 55, Name = "Apply" };
             var statusCol = new DataGridViewTextBoxColumn { HeaderText = "Status", Width = 85, ReadOnly = true, Name = "Status" };
-            var refCol = new DataGridViewTextBoxColumn { HeaderText = "Verse (வசனம்)", Width = 95, ReadOnly = true, Name = "Ref" };
-            var ruleCol = new DataGridViewTextBoxColumn { HeaderText = "Type (வகை)", Width = 145, ReadOnly = true, Name = "Rule" };
+            var refCol = new DataGridViewTextBoxColumn { HeaderText = "Verse (வசனம்)", Width = 115, ReadOnly = true, Name = "Ref" };
+            var ruleCol = new DataGridViewTextBoxColumn { HeaderText = "Type (வகை)", Width = 185, ReadOnly = true, Name = "Rule" };
             var origCol = new DataGridViewTextBoxColumn { HeaderText = "Original (மூலம்)", Width = 130, ReadOnly = true, Name = "Orig" };
-            var repCol = new DataGridViewTextBoxColumn { HeaderText = "Proposed (மாற்றம்)", Width = 140, ReadOnly = true, Name = "Rep" };
-            var previewCol = new DataGridViewTextBoxColumn { HeaderText = "Context Preview (சூழல்)", Width = 260, ReadOnly = true, Name = "Preview" };
-            var warnCol = new DataGridViewTextBoxColumn { HeaderText = "Notes (குறிப்பு)", Width = 180, ReadOnly = true, Name = "Warn" };
+            var repCol = new DataGridViewTextBoxColumn { HeaderText = "Proposed (மாற்றம்)", Width = 150, ReadOnly = true, Name = "Rep" };
+            var previewCol = new DataGridViewTextBoxColumn { HeaderText = "Context Preview (சூழல்)", Width = 280, ReadOnly = true, Name = "Preview" };
+            var warnCol = new DataGridViewTextBoxColumn { HeaderText = "Notes (குறிப்பு)", Width = 220, ReadOnly = true, Name = "Warn" };
 
             _grid.Columns.AddRange(chkCol, statusCol, refCol, ruleCol, origCol, repCol, previewCol, warnCol);
 
@@ -308,23 +309,64 @@ namespace NumberConversions.Plugin.UI
             if (string.IsNullOrWhiteSpace(p.OriginalText))
                 return $"[{p.Replacement}]";
 
+            string text = p.OriginalText;
             int start = Math.Max(0, p.StartIndex);
-            int length = Math.Min(p.Length, Math.Max(0, p.OriginalText.Length - start));
+            int length = Math.Min(p.Length, Math.Max(0, text.Length - start));
 
-            // Get up to 35 characters before and 35 characters after
-            int prevStart = Math.Max(0, start - 35);
-            int nextEnd = Math.Min(p.OriginalText.Length, start + length + 35);
+            // 1. Immediate previous word (scanning backwards from start - 1)
+            int i = start - 1;
+            while (i >= 0 && char.IsWhiteSpace(text[i]))
+            {
+                i--;
+            }
 
-            string before = p.OriginalText.Substring(prevStart, start - prevStart);
-            string after = p.OriginalText.Substring(start + length, nextEnd - (start + length));
+            string prevWord = string.Empty;
+            if (i >= 0)
+            {
+                int prevWordEnd = i;
+                while (i >= 0 && !char.IsWhiteSpace(text[i]))
+                {
+                    i--;
+                }
+                prevWord = text.Substring(i + 1, prevWordEnd - i).Trim();
+            }
 
-            string prefix = prevStart > 0 ? "..." : "";
-            string suffix = nextEnd < p.OriginalText.Length ? "..." : "";
+            // 2. Immediate next word (scanning forwards from start + length)
+            int j = start + length;
+            while (j < text.Length && char.IsWhiteSpace(text[j]))
+            {
+                j++;
+            }
 
-            before = before.Replace("\r", " ").Replace("\n", " ");
-            after = after.Replace("\r", " ").Replace("\n", " ");
+            string nextWord = string.Empty;
+            if (j < text.Length)
+            {
+                int nextWordStart = j;
+                while (j < text.Length && !char.IsWhiteSpace(text[j]))
+                {
+                    j++;
+                }
+                nextWord = text.Substring(nextWordStart, j - nextWordStart).Trim();
+            }
 
-            return $"{prefix}{before}[{p.Replacement}]{after}{suffix}".Trim();
+            // Clean up newline artifacts
+            prevWord = prevWord.Replace("\r", "").Replace("\n", "");
+            nextWord = nextWord.Replace("\r", "").Replace("\n", "");
+
+            if (!string.IsNullOrEmpty(prevWord) && !string.IsNullOrEmpty(nextWord))
+            {
+                return $"{prevWord} [{p.Replacement}] {nextWord}";
+            }
+            if (!string.IsNullOrEmpty(prevWord))
+            {
+                return $"{prevWord} [{p.Replacement}]";
+            }
+            if (!string.IsNullOrEmpty(nextWord))
+            {
+                return $"[{p.Replacement}] {nextWord}";
+            }
+
+            return $"[{p.Replacement}]";
         }
 
         private void SetSelection(bool isSelected, bool onlyNormal)
